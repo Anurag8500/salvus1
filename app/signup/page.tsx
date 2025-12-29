@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import { Mail, Lock, User, Shield, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
+
 export default function SignupPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
@@ -18,6 +20,36 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.message || 'Google Auth Failed')
+
+      if (data.needsPasswordSetup) {
+        router.push('/set-password')
+      } else {
+        router.push('/donor-dashboard')
+      }
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleError = () => {
+    setError('Google Signup Failed')
+  }
 
   const validateForm = () => {
     if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
@@ -121,8 +153,38 @@ export default function SignupPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="glass rounded-2xl p-8 border border-dark-lighter/50"
+          className="bg-dark/50 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-2xl"
         >
+          {!success && (
+            <>
+              {/* Google Signup Button */}
+              <div className="mb-6">
+                <div className="flex justify-center">
+                  <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
+                    <GoogleLogin
+                      onSuccess={handleGoogleSuccess}
+                      onError={handleGoogleError}
+                      theme="filled_black"
+                      shape="pill"
+                      text="signup_with"
+                      width="100%"
+                    />
+                  </GoogleOAuthProvider>
+                </div>
+              </div>
+
+              <div className="my-6">
+                <div className="flex items-center">
+                  <div className="flex-grow border-t border-dark-lighter/30"></div>
+                  <span className="px-3 text-xs text-gray-400">OR</span>
+                  <div className="flex-grow border-t border-dark-lighter/30"></div>
+                </div>
+              </div>
+ 
+             
+            </>
+          )}
+
           {success ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -231,9 +293,16 @@ export default function SignupPage() {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       required
-                      className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                      className="w-full pl-12 pr-12 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
                       placeholder="••••••••"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
                   </div>
                 </motion.div>
 
@@ -253,19 +322,7 @@ export default function SignupPage() {
                 </button>
               </form>
 
-              {/* Divider */}
-              <div className="my-6 flex items-center gap-4">
-                <div className="flex-1 h-px bg-dark-lighter/50"></div>
-                <span className="text-xs text-gray-500 uppercase">Or continue with</span>
-                <div className="flex-1 h-px bg-dark-lighter/50"></div>
-              </div>
-
-              {/* Social Login - Only Google */}
-              <div className="flex justify-center">
-                <button className="w-full py-2.5 px-4 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-gray-300 hover:border-accent/50 hover:text-white transition-all duration-300 text-sm font-medium">
-                  Google
-                </button>
-              </div>
+              
 
               {/* Trust Indicators */}
               <div className="mt-8 pt-6 border-t border-dark-lighter/30">

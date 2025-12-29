@@ -5,6 +5,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Mail, Lock, Shield, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -15,6 +16,36 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const handleGoogleSuccess = async (credentialResponse: any) => {
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch('/api/auth/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: credentialResponse.credential }),
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) throw new Error(data.message || 'Google Auth Failed')
+
+      if (data.needsPasswordSetup) {
+        router.push('/set-password')
+      } else {
+        router.push('/donor-dashboard')
+      }
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogleError = () => {
+    setError('Google Login Failed')
+  }
 
   const validateForm = () => {
     if (!formData.email || !formData.password) {
@@ -105,8 +136,31 @@ export default function LoginPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
-          className="glass rounded-2xl p-8 border border-dark-lighter/50"
+          className="bg-dark/50 backdrop-blur-xl border border-white/5 rounded-2xl p-8 shadow-2xl"
         >
+          {/* Google Login Button */}
+          <div className="mb-6">
+             <div className="flex justify-center">
+              <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || ''}>
+                <GoogleLogin
+                  onSuccess={handleGoogleSuccess}
+                  onError={handleGoogleError}
+                  theme="filled_black"
+                  shape="pill"
+                  text="continue_with"
+                  width="100%"
+                />
+              </GoogleOAuthProvider>
+            </div>
+          </div>
+          <div className="my-6">
+            <div className="flex items-center">
+              <div className="flex-grow border-t border-dark-lighter/30"></div>
+              <span className="px-3 text-xs text-gray-400">OR</span>
+              <div className="flex-grow border-t border-dark-lighter/30"></div>
+            </div>
+          </div>
+
           {error && (
             <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-lg mb-6 text-sm">
               {error}
@@ -114,7 +168,7 @@ export default function LoginPage() {
           )}
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Email Address
@@ -158,12 +212,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="flex justify-end">
-              <a href="#" className="text-sm text-accent hover:text-accent-light transition-colors">
-                Forgot password?
-              </a>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
@@ -179,20 +227,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Divider */}
-          <div className="my-6 flex items-center gap-4">
-            <div className="flex-1 h-px bg-dark-lighter/50"></div>
-            <span className="text-xs text-gray-500 uppercase">Or continue with</span>
-            <div className="flex-1 h-px bg-dark-lighter/50"></div>
-          </div>
-
-          {/* Social Login - Only Google */}
-          <div className="flex justify-center">
-            <button className="w-full py-2.5 px-4 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-gray-300 hover:border-accent/50 hover:text-white transition-all duration-300 text-sm font-medium">
-              Google
-            </button>
-          </div>
 
           {/* Trust Indicators */}
           <div className="mt-8 pt-6 border-t border-dark-lighter/30">

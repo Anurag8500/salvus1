@@ -13,7 +13,6 @@ const UserSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Please provide a password'],
   },
   isVerified: {
     type: Boolean,
@@ -21,6 +20,21 @@ const UserSchema = new mongoose.Schema({
   },
   verificationToken: {
     type: String,
+  },
+  requiresPasswordSetup: {
+    type: Boolean,
+    default: false,
+  },
+  googleId: {
+    type: String,
+  },
+  profilePicture: {
+    type: String,
+  },
+  authProvider: {
+    type: String,
+    enum: ['email', 'google'],
+    default: 'email',
   },
   createdAt: {
     type: Date,
