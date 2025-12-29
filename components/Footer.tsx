@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import Link from 'next/link'
 import { ExternalLink } from 'lucide-react'
 
 export default function Footer() {
@@ -63,9 +64,9 @@ export default function Footer() {
           {/* CTA */}
           <div>
             <h3 className="text-white font-semibold mb-4">Get Started</h3>
-            <button className="w-full px-6 py-3 glass neon border-2 border-accent-neon shadow-neon text-white font-bold rounded-xl transition-all duration-300 mb-4 hover:scale-105 hover:bg-accent/20 hover:shadow-accent/40">
+            <Link href="/campaign/start" className="w-full px-6 py-3 glass neon border-2 border-accent-neon shadow-neon text-white font-bold rounded-xl transition-all duration-300 mb-4 hover:scale-105 hover:bg-accent/20 hover:shadow-accent/40 inline-block text-center">
               Start a Relief Campaign
-            </button>
+            </Link>
             <p className="text-xs text-gray-500">
               Hackathon demo prototype
             </p>
