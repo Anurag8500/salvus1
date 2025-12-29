@@ -1,9 +1,9 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, User, Shield, ArrowRight } from 'lucide-react'
+import { Mail, Lock, User, Shield, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
 export default function SignupPage() {
@@ -14,14 +14,74 @@ export default function SignupPage() {
     password: '',
     confirmPassword: '',
   })
+  const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const validateForm = () => {
+    if (!formData.name || !formData.email || !formData.password || !formData.confirmPassword) {
+      setError('All fields are required')
+      return false
+    }
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return false
+    }
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      return false
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      setError('Please enter a valid email')
+      return false
+    }
+    return true
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle form submission
-    console.log('Sign Up', formData)
-    
-    // Redirect to dashboard after signup
-    router.push('/donor-dashboard')
+    setError('')
+    setSuccess('')
+
+    if (!validateForm()) return
+
+    setLoading(true)
+
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+        }),
+      })
+
+      // Check content type
+      const contentType = res.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await res.text()
+        console.error('Non-JSON response:', text)
+        throw new Error('Server returned an error (check logs)')
+      }
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Something went wrong')
+      }
+
+      setSuccess(data.message)
+      setFormData({ name: '', email: '', password: '', confirmPassword: '' })
+    } catch (err: any) {
+      console.error('Signup error:', err)
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -29,6 +89,7 @@ export default function SignupPage() {
       ...formData,
       [e.target.name]: e.target.value,
     })
+    if (error) setError('')
   }
 
   return (
@@ -62,126 +123,165 @@ export default function SignupPage() {
           transition={{ duration: 0.6, delay: 0.1 }}
           className="glass rounded-2xl p-8 border border-dark-lighter/50"
         >
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          {success ? (
             <motion.div
-              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
-              transition={{ duration: 0.3 }}
-              style={{ overflow: 'hidden' }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-8"
             >
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Full Name
-              </label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-                  placeholder="Enter your full name"
-                />
+              <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Shield className="w-8 h-8 text-green-500" />
               </div>
-            </motion.div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-                  placeholder="you@example.com"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-              animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
-              transition={{ duration: 0.3 }}
-              style={{ overflow: 'hidden' }}
-            >
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  required
-                  className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
-            </motion.div>
-
-            <button
-              type="submit"
-              className="w-full py-3.5 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg shadow-accent/20 flex items-center justify-center gap-2 group"
-            >
-              <span>Create Account</span>
-              <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </form>
-
-          {/* Divider */}
-          <div className="my-6 flex items-center gap-4">
-            <div className="flex-1 h-px bg-dark-lighter/50"></div>
-            <span className="text-xs text-gray-500 uppercase">Or continue with</span>
-            <div className="flex-1 h-px bg-dark-lighter/50"></div>
-          </div>
-
-          {/* Social Login - Only Google */}
-          <div className="flex justify-center">
-            <button className="w-full py-2.5 px-4 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-gray-300 hover:border-accent/50 hover:text-white transition-all duration-300 text-sm font-medium">
-              Google
-            </button>
-          </div>
-
-          {/* Trust Indicators */}
-          <div className="mt-8 pt-6 border-t border-dark-lighter/30">
-            <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mb-4">
-              <Shield className="w-4 h-4 text-accent" />
-              <span>Secure & Encrypted</span>
-            </div>
-            <div className="text-center text-sm text-gray-400">
-              Already have an account?{' '}
-              <Link href="/login" className="text-accent hover:text-accent-light font-semibold transition-colors">
-                Sign In
+              <h3 className="text-xl font-bold text-white mb-2">Check Your Email</h3>
+              <p className="text-gray-400 mb-6">{success}</p>
+              <Link href="/login" className="text-accent hover:text-accent-light font-semibold">
+                Proceed to Login
               </Link>
-            </div>
-          </div>
+            </motion.div>
+          ) : (
+            <>
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-lg mb-6 text-sm">
+                  {error}
+                </div>
+              )}
+
+              {/* Form */}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Full Name
+                  </label>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                      placeholder="Enter your full name"
+                    />
+                  </div>
+                </motion.div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Email Address
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                      placeholder="you@example.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={formData.password}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-12 pr-12 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                      placeholder="••••••••"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ overflow: 'hidden' }}
+                >
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Confirm Password
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required
+                      className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                      placeholder="••••••••"
+                    />
+                  </div>
+                </motion.div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg shadow-accent/20 flex items-center justify-center gap-2 group disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <>
+                      <span>Create Account</span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Divider */}
+              <div className="my-6 flex items-center gap-4">
+                <div className="flex-1 h-px bg-dark-lighter/50"></div>
+                <span className="text-xs text-gray-500 uppercase">Or continue with</span>
+                <div className="flex-1 h-px bg-dark-lighter/50"></div>
+              </div>
+
+              {/* Social Login - Only Google */}
+              <div className="flex justify-center">
+                <button className="w-full py-2.5 px-4 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-gray-300 hover:border-accent/50 hover:text-white transition-all duration-300 text-sm font-medium">
+                  Google
+                </button>
+              </div>
+
+              {/* Trust Indicators */}
+              <div className="mt-8 pt-6 border-t border-dark-lighter/30">
+                <div className="flex items-center justify-center gap-2 text-xs text-gray-400 mb-4">
+                  <Shield className="w-4 h-4 text-accent" />
+                  <span>Secure & Encrypted</span>
+                </div>
+                <div className="text-center text-sm text-gray-400">
+                  Already have an account?{' '}
+                  <Link href="/login" className="text-accent hover:text-accent-light font-semibold transition-colors">
+                    Sign In
+                  </Link>
+                </div>
+              </div>
+            </>
+          )}
         </motion.div>
       </div>
     </div>
