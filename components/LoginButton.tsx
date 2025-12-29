@@ -6,8 +6,8 @@ import Link from 'next/link'
 export default function LoginButton() {
   const pathname = usePathname()
   
-  // Hide login button on login page
-  if (pathname === '/login') {
+  // Hide login button on login and dashboard pages
+  if (pathname === '/login' || pathname === '/dashboard') {
     return null
   }
 

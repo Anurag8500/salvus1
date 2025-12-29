@@ -2,10 +2,12 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Mail, Lock, User, Shield, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
 export default function LoginPage() {
+  const router = useRouter()
   const [isLogin, setIsLogin] = useState(true)
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +20,11 @@ export default function LoginPage() {
     e.preventDefault()
     // Handle form submission
     console.log(isLogin ? 'Login' : 'Sign Up', formData)
+    
+    // Redirect to dashboard after login
+    if (isLogin) {
+      router.push('/dashboard')
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
