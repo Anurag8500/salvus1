@@ -7,6 +7,14 @@ import { Shield, TrendingUp, Users, CheckCircle } from 'lucide-react'
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-dark-darker via-dark-darker to-dark">
+      {/* Login Button - Top Right Absolute */}
+      <Link
+        href="/login"
+        className="absolute top-6 right-8 z-50 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl px-6 py-2 transition-all duration-300 hover:scale-105 hover:shadow-accent/40"
+      >
+        Login
+      </Link>
+
       <div className="container mx-auto px-6 lg:px-12 py-20">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Left: Text + CTAs */}
@@ -56,7 +64,7 @@ export default function Hero() {
               transition={{ duration: 0.6, delay: 0.4 }}
               className="flex flex-wrap gap-4 pt-4"
             >
-              <Link href="/login" className="px-8 py-4 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-accent/40 inline-block text-center">
+              <Link href="/signup" className="px-8 py-4 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-accent/40 inline-block text-center">
                 Get Started
               </Link>
               <Link href="/campaign/start" className="px-8 py-4 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-accent/40 inline-block text-center">

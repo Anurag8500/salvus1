@@ -1,24 +1,26 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, Shield, ArrowRight } from 'lucide-react'
+import { Mail, Lock, User, Shield, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 
-export default function LoginPage() {
+export default function SignupPage() {
   const router = useRouter()
   const [formData, setFormData] = useState({
+    name: '',
     email: '',
     password: '',
+    confirmPassword: '',
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Handle form submission
-    console.log('Login', formData)
+    console.log('Sign Up', formData)
     
-    // Redirect to donor dashboard after login
+    // Redirect to dashboard after signup
     router.push('/donor-dashboard')
   }
 
@@ -49,7 +51,7 @@ export default function LoginPage() {
             </h1>
           </Link>
           <p className="text-gray-400 text-sm">
-            Welcome back
+            Create your account
           </p>
         </motion.div>
 
@@ -62,6 +64,29 @@ export default function LoginPage() {
         >
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-5">
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+              transition={{ duration: 0.3 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Full Name
+              </label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                  placeholder="Enter your full name"
+                />
+              </div>
+            </motion.div>
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Email Address
@@ -98,11 +123,34 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+              animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+              transition={{ duration: 0.3 }}
+              style={{ overflow: 'hidden' }}
+            >
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Confirm Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  className="w-full pl-12 pr-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
+            </motion.div>
+
             <button
               type="submit"
               className="w-full py-3.5 bg-accent hover:bg-accent-dark text-white font-semibold rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg shadow-accent/20 flex items-center justify-center gap-2 group"
             >
-              <span>Sign In</span>
+              <span>Create Account</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </form>
@@ -128,9 +176,9 @@ export default function LoginPage() {
               <span>Secure & Encrypted</span>
             </div>
             <div className="text-center text-sm text-gray-400">
-              Don't have an account?{' '}
-              <Link href="/signup" className="text-accent hover:text-accent-light font-semibold transition-colors">
-                Sign Up
+              Already have an account?{' '}
+              <Link href="/login" className="text-accent hover:text-accent-light font-semibold transition-colors">
+                Sign In
               </Link>
             </div>
           </div>
