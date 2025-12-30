@@ -36,6 +36,7 @@ export async function POST(req: Request) {
       name,
       email,
       password: hashedPassword,
+      role: 'Donor',
       verificationToken,
     })
 

@@ -112,8 +112,12 @@ export default function LoginPage() {
         throw new Error(data.message || 'Something went wrong')
       }
 
-      // Redirect to donor dashboard after login
-      router.push('/donor-dashboard')
+      const role = data?.user?.role
+      if (role === 'Beneficiary') {
+        router.push('/beneficiary-dashboard')
+      } else {
+        router.push('/donor-dashboard')
+      }
     } catch (err: any) {
       console.error('Login error:', err)
       setError(err.message)
@@ -180,7 +184,12 @@ export default function LoginPage() {
                       if (data.needsPasswordSetup) {
                         router.push('/set-password')
                       } else {
-                        router.push('/donor-dashboard')
+                        const role = data?.user?.role
+                        if (role === 'Beneficiary') {
+                          router.push('/beneficiary-dashboard')
+                        } else {
+                          router.push('/donor-dashboard')
+                        }
                       }
                     } catch (err: any) {
                       setError(err.message)

@@ -36,6 +36,11 @@ const UserSchema = new mongoose.Schema({
     enum: ['email', 'google'],
     default: 'email',
   },
+  role: {
+    type: String,
+    enum: ['Donor', 'Beneficiary', 'Admin'],
+    default: 'Donor',
+  },
   createdAt: {
     type: Date,
     default: Date.now,

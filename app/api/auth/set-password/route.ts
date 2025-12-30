@@ -47,12 +47,12 @@ export async function POST(req: Request) {
     await user.save()
 
     const authToken = jwt.sign(
-      { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
       { expiresIn: '30d' }
     )
 
-    const response = NextResponse.json({ message: 'Password set successfully' }, { status: 200 })
+    const response = NextResponse.json({ message: 'Password set successfully', role: user.role }, { status: 200 })
     response.cookies.set('token', authToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

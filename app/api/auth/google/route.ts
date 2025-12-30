@@ -89,6 +89,7 @@ export async function POST(req: Request) {
         googleId,
         profilePicture: picture,
         authProvider: 'google',
+        role: 'Donor',
         isVerified: true,
         requiresPasswordSetup: true,
       })
@@ -114,12 +115,12 @@ export async function POST(req: Request) {
       return response
     } else {
       const token = jwt.sign(
-        { userId: user._id, email: user.email },
+        { userId: user._id, email: user.email, role: user.role },
         process.env.JWT_SECRET!,
         { expiresIn: '30d' }
       )
       const response = NextResponse.json(
-        { message: 'Login successful', user: { name: user.name, email: user.email } },
+        { message: 'Login successful', user: { name: user.name, email: user.email, role: user.role } },
         { status: 200 }
       )
       response.cookies.set('token', token, {

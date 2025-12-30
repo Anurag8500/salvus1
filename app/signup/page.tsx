@@ -33,11 +33,12 @@ export default function SignupPage() {
         onClick={() => loginWithGoogle()}
         className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-neutral-900 text-white transition-all duration-200 border border-white/20 hover:border-accent/50 hover:bg-neutral-800 shadow-sm shadow-black/30 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
       >
-        <img
-          src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
-          alt=""
-          className="w-5 h-5"
-        />
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-5 h-5">
+          <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3c-1.6 4.6-6 8-11.3 8-6.9 0-12.5-5.6-12.5-12.5S17.1 11 24 11c3.2 0 6.1 1.2 8.3 3.2l5.7-5.7C34.6 5 29.6 3 24 3 12.3 3 3 12.3 3 24s9.3 21 21 21c10.5 0 19.4-7.6 21-17.5.2-1.3.3-2.6.3-4z"/>
+          <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.8 16.2 19.1 13 24 13c3.2 0 6.1 1.2 8.3 3.2l5.7-5.7C34.6 5 29.6 3 24 3 16.3 3 9.6 7.1 6.3 14.7z"/>
+          <path fill="#4CAF50" d="M24 45c5.4 0 10.4-2.1 14.1-5.6l-6.6-5.4c-2.2 1.5-4.9 2.4-7.6 2.4-5.3 0-9.8-3.4-11.4-8.1l-6.7 5.2C9.6 40.9 16.3 45 24 45z"/>
+          <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1.1 3.2-3.4 5.8-6.3 7.4l6.6 5.4C39.4 37.9 42.8 31.6 43.6 24c.2-1.3.3-2.6.3-4z"/>
+        </svg>
         <span>Continue with Google</span>
       </button>
     )
@@ -198,7 +199,12 @@ export default function SignupPage() {
                           if (data.needsPasswordSetup) {
                             router.push('/set-password')
                           } else {
-                            router.push('/donor-dashboard')
+                            const role = data?.user?.role
+                            if (role === 'Beneficiary') {
+                              router.push('/beneficiary-dashboard')
+                            } else {
+                              router.push('/donor-dashboard')
+                            }
                           }
                         } catch (err: any) {
                           setError(err.message)

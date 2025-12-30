@@ -48,7 +48,14 @@ export default function SetPasswordPage() {
         throw new Error(data.message || 'Failed to set password')
       }
       setSuccess('Password set successfully')
-      setTimeout(() => router.push('/donor-dashboard'), 1000)
+      setTimeout(() => {
+        const role = data?.role
+        if (role === 'Beneficiary') {
+          router.push('/beneficiary-dashboard')
+        } else {
+          router.push('/donor-dashboard')
+        }
+      }, 1000)
     } catch (err: any) {
       setError(err.message)
     } finally {
