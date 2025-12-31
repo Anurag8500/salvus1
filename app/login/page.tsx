@@ -112,8 +112,10 @@ export default function LoginPage() {
         throw new Error(data.message || 'Something went wrong')
       }
 
-      const role = data?.user?.role
-      if (role === 'Beneficiary') {
+      const role = (data?.user?.role || '').toLowerCase()
+      if (role === 'admin') {
+        router.push('/admin/dashboard')
+      } else if (role === 'beneficiary') {
         router.push('/beneficiary-dashboard')
       } else {
         router.push('/donor-dashboard')
@@ -184,8 +186,10 @@ export default function LoginPage() {
                       if (data.needsPasswordSetup) {
                         router.push('/set-password')
                       } else {
-                        const role = data?.user?.role
-                        if (role === 'Beneficiary') {
+                        const role = (data?.user?.role || '').toLowerCase()
+                        if (role === 'admin') {
+                          router.push('/admin/dashboard')
+                        } else if (role === 'beneficiary') {
                           router.push('/beneficiary-dashboard')
                         } else {
                           router.push('/donor-dashboard')

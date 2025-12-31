@@ -7,6 +7,19 @@ import { Shield, TrendingUp, Users, CheckCircle } from 'lucide-react'
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-dark-darker via-dark-darker to-dark">
+      {/* Brand - Top Left Absolute */}
+      <Link
+        href="/"
+        className="absolute top-6 left-8 z-50"
+        aria-label="Salvus home"
+      >
+        <span className="text-5xl md:text-6xl font-extrabold tracking-tighter bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(20,220,190,0.25)]">
+          SALVUS
+        </span>
+      </Link>
+      {/* Subtle glow behind brand */}
+      <div className="absolute top-2 left-0 w-40 h-40 bg-accent/10 rounded-full blur-3xl -z-10"></div>
+
       {/* Login Button - Top Right Absolute */}
       <Link
         href="/login"
@@ -24,16 +37,8 @@ export default function Hero() {
             transition={{ duration: 0.6 }}
             className="space-y-8"
           >
-            {/* Logo */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-            >
-              <h1 className="text-4xl font-bold tracking-tight text-white mb-12">
-                SALVUS
-              </h1>
-            </motion.div>
+            {/* Spacer to balance layout under top-left brand */}
+            <div className="h-10 md:h-12"></div>
 
             {/* Main Headline */}
             <motion.h2
@@ -181,4 +186,3 @@ export default function Hero() {
     </section>
   )
 }
-

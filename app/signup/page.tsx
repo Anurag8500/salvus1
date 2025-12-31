@@ -61,7 +61,14 @@ export default function SignupPage() {
       if (data.needsPasswordSetup) {
         router.push('/set-password')
       } else {
-        router.push('/donor-dashboard')
+        const role = (data?.user?.role || '').toLowerCase()
+        if (role === 'admin') {
+          router.push('/admin/dashboard')
+        } else if (role === 'beneficiary') {
+          router.push('/beneficiary-dashboard')
+        } else {
+          router.push('/donor-dashboard')
+        }
       }
     } catch (err: any) {
       setError(err.message)
@@ -129,6 +136,19 @@ export default function SignupPage() {
         throw new Error(data.message || 'Something went wrong')
       }
 
+      if (data?.user?.role) {
+        const role = (data.user.role || '').toLowerCase()
+        if (role === 'admin') {
+          router.push('/admin/dashboard')
+          return
+        } else if (role === 'beneficiary') {
+          router.push('/beneficiary-dashboard')
+          return
+        } else {
+          router.push('/donor-dashboard')
+          return
+        }
+      }
       setSuccess(data.message)
       setFormData({ name: '', email: '', password: '', confirmPassword: '' })
     } catch (err: any) {
@@ -199,8 +219,10 @@ export default function SignupPage() {
                           if (data.needsPasswordSetup) {
                             router.push('/set-password')
                           } else {
-                            const role = data?.user?.role
-                            if (role === 'Beneficiary') {
+                            const role = (data?.user?.role || '').toLowerCase()
+                            if (role === 'admin') {
+                              router.push('/admin/dashboard')
+                            } else if (role === 'beneficiary') {
                               router.push('/beneficiary-dashboard')
                             } else {
                               router.push('/donor-dashboard')
