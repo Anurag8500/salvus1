@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { ArrowRight, X, CheckCircle, MapPin, Users, TrendingUp } from 'lucide-react'
 
 export default function DonateSection() {
@@ -10,6 +11,12 @@ export default function DonateSection() {
   const [paymentMethod, setPaymentMethod] = useState('UPI')
   const [showModal, setShowModal] = useState(false)
   const [donationDetails, setDonationDetails] = useState<any>(null)
+  const [mounted, setMounted] = useState(false)
+
+  // Hydration fix & Portal target check
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleClick = (id: string) => {
     setSelectedCampaign(current => current === id ? '' : id)
@@ -234,82 +241,85 @@ export default function DonateSection() {
         </div>
       </motion.div>
 
-      {/* Enhanced Confirmation Modal */}
-      <AnimatePresence>
-        {showModal && donationDetails && (
-          <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.8, y: 20 }}
-              className="glass rounded-2xl p-8 border border-dark-lighter/50 max-w-md w-full relative overflow-hidden"
-            >
-              {/* Background effect */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-accent/10 rounded-full blur-3xl -z-10"></div>
-
-              <button
-                onClick={handleCloseModal}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
+      {/* Enhanced Confirmation Modal - Portalled to Body */}
+      {mounted && createPortal(
+        <AnimatePresence>
+          {showModal && donationDetails && (
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: 20 }}
+                className="glass rounded-2xl p-8 border border-dark-lighter/50 max-w-md w-full relative overflow-hidden"
               >
-                <X className="w-6 h-6" />
-              </button>
+                {/* Background effect */}
+                <div className="absolute top-0 right-0 w-48 h-48 bg-accent/10 rounded-full blur-3xl -z-10"></div>
 
-              <div className="text-center mb-6 relative z-10">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', bounce: 0.4, duration: 0.6 }}
-                  className="flex justify-center mb-4"
+                <button
+                  onClick={handleCloseModal}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
                 >
-                  <div className="w-20 h-20 bg-gradient-to-br from-accent/30 to-accent/10 rounded-full flex items-center justify-center border-2 border-accent/50">
-                    <CheckCircle className="w-12 h-12 text-accent" />
+                  <X className="w-6 h-6" />
+                </button>
+
+                <div className="text-center mb-6 relative z-10">
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: 'spring', bounce: 0.4, duration: 0.6 }}
+                    className="flex justify-center mb-4"
+                  >
+                    <div className="w-20 h-20 bg-gradient-to-br from-accent/30 to-accent/10 rounded-full flex items-center justify-center border-2 border-accent/50">
+                      <CheckCircle className="w-12 h-12 text-accent" />
+                    </div>
+                  </motion.div>
+                  <h3 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                    Donation Successful!
+                  </h3>
+                  <p className="text-gray-400">Your contribution is making a difference</p>
+                </div>
+
+                <div className="space-y-3 bg-gradient-to-br from-dark-lighter/40 to-dark-lighter/20 rounded-xl p-5 mb-6 border border-dark-lighter/30 relative z-10">
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-400">Amount</span>
+                    <span className="text-white font-bold text-lg">₹{donationDetails.amount}</span>
                   </div>
-                </motion.div>
-                <h3 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                  Donation Successful!
-                </h3>
-                <p className="text-gray-400">Your contribution is making a difference</p>
-              </div>
+                  <div className="h-px bg-dark-lighter/50"></div>
+                  <div className="flex justify-between items-start py-2">
+                    <span className="text-gray-400">Campaign</span>
+                    <span className="text-white font-semibold text-right max-w-[60%]">{donationDetails.campaign}</span>
+                  </div>
+                  <div className="h-px bg-dark-lighter/50"></div>
+                  <div className="flex justify-between items-center py-2">
+                    <span className="text-gray-400">Payment Method</span>
+                    <span className="text-white font-semibold">{donationDetails.paymentMethod}</span>
+                  </div>
+                  <div className="h-px bg-dark-lighter/50"></div>
+                  <div className="flex justify-between items-start py-2">
+                    <span className="text-gray-400">Timestamp</span>
+                    <span className="text-white font-semibold text-sm text-right max-w-[60%]">{donationDetails.timestamp}</span>
+                  </div>
+                  <div className="h-px bg-dark-lighter/50"></div>
+                  <div className="flex justify-between items-center py-2 pt-3 bg-accent/5 rounded-lg px-3 -mx-1">
+                    <span className="text-gray-300 font-semibold">Reference ID</span>
+                    <span className="text-accent font-mono font-bold text-sm">{donationDetails.referenceId}</span>
+                  </div>
+                </div>
 
-              <div className="space-y-3 bg-gradient-to-br from-dark-lighter/40 to-dark-lighter/20 rounded-xl p-5 mb-6 border border-dark-lighter/30 relative z-10">
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-400">Amount</span>
-                  <span className="text-white font-bold text-lg">₹{donationDetails.amount}</span>
-                </div>
-                <div className="h-px bg-dark-lighter/50"></div>
-                <div className="flex justify-between items-start py-2">
-                  <span className="text-gray-400">Campaign</span>
-                  <span className="text-white font-semibold text-right max-w-[60%]">{donationDetails.campaign}</span>
-                </div>
-                <div className="h-px bg-dark-lighter/50"></div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-gray-400">Payment Method</span>
-                  <span className="text-white font-semibold">{donationDetails.paymentMethod}</span>
-                </div>
-                <div className="h-px bg-dark-lighter/50"></div>
-                <div className="flex justify-between items-start py-2">
-                  <span className="text-gray-400">Timestamp</span>
-                  <span className="text-white font-semibold text-sm text-right max-w-[60%]">{donationDetails.timestamp}</span>
-                </div>
-                <div className="h-px bg-dark-lighter/50"></div>
-                <div className="flex justify-between items-center py-2 pt-3 bg-accent/5 rounded-lg px-3 -mx-1">
-                  <span className="text-gray-300 font-semibold">Reference ID</span>
-                  <span className="text-accent font-mono font-bold text-sm">{donationDetails.referenceId}</span>
-                </div>
-              </div>
-
-              <motion.button
-                onClick={handleCloseModal}
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="w-full py-3.5 bg-gradient-to-r from-accent to-accent-light hover:from-accent-dark hover:to-accent text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-accent/20 relative z-10"
-              >
-                Close
-              </motion.button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+                <motion.button
+                  onClick={handleCloseModal}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="w-full py-3.5 bg-gradient-to-r from-accent to-accent-light hover:from-accent-dark hover:to-accent text-white font-semibold rounded-xl transition-all duration-300 shadow-lg shadow-accent/20 relative z-10"
+                >
+                  Close
+                </motion.button>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </>
   )
 }
