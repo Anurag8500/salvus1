@@ -1,202 +1,257 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useMemo, useState } from 'react'
-import { Shield, Flag, Users, Store as StoreIcon, ClipboardList, Eye, Settings, CheckCircle, PauseCircle, XCircle, Building2, Calendar, Plus } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
+import {
+  Shield, Flag, Users, Store as StoreIcon, ClipboardList, Eye, Settings,
+  CheckCircle, PauseCircle, XCircle, Building2, Calendar, Plus,
+  Bell, LogOut, Search, Filter, AlertTriangle, AlertOctagon, TrendingUp, CreditCard, UserPlus, Store
+} from 'lucide-react'
+import { useState, useMemo } from 'react'
+import AdminNavbar from '@/components/admin/AdminNavbar'
+import EnhancedStatCard from '@/components/admin/EnhancedStatCard'
+import ActionCenterPanel, { ActionItem } from '@/components/admin/ActionCenterPanel'
+import ActivitySnapshot from '@/components/admin/ActivitySnapshot'
+import CreateCampaignModal from '@/components/admin/CreateCampaignModal'
 
 export default function AdminDashboard() {
   const [showCampaignCreate, setShowCampaignCreate] = useState(false)
-  const [showBeneficiaryOnboard, setShowBeneficiaryOnboard] = useState(false)
-  const [showStoreAdd, setShowStoreAdd] = useState(false)
-  const [activeCampaignView, setActiveCampaignView] = useState<string | null>(null)
+
+  // --- MOCK DATA ---
+
   const stats = useMemo(() => ([
-    { icon: ClipboardList, label: 'Active Campaigns', value: 3 },
-    { icon: Users, label: 'Approved Beneficiaries', value: 128 },
-    { icon: StoreIcon, label: 'Verified Stores', value: 42 },
-    { icon: Flag, label: 'Alerts / Flags', value: 2 },
+    {
+      icon: ClipboardList,
+      label: 'Active Campaigns',
+      value: 3,
+      color: 'text-blue-400',
+      bgColor: 'bg-blue-500/10',
+      borderColor: 'border-blue-500/30',
+      breakdown: [
+        { label: 'Active', value: 3, color: 'text-green-400' },
+        { label: 'Paused', value: 1, color: 'text-yellow-400' },
+        { label: 'Closed', value: 5, color: 'text-gray-400' }
+      ]
+    },
+    {
+      icon: Users,
+      label: 'Beneficiaries',
+      value: 128,
+      color: 'text-green-400',
+      bgColor: 'bg-green-500/10',
+      borderColor: 'border-green-500/30',
+      breakdown: [
+        { label: 'Pending', value: 12, color: 'text-red-400' },
+        { label: 'Approved', value: 110, color: 'text-green-400' },
+        { label: 'Suspended', value: 6, color: 'text-gray-400' }
+      ]
+    },
+    {
+      icon: StoreIcon,
+      label: 'Vendors / Stores',
+      value: 42,
+      color: 'text-purple-400',
+      bgColor: 'bg-purple-500/10',
+      borderColor: 'border-purple-500/30',
+      breakdown: [
+        { label: 'Verified', value: 38, color: 'text-green-400' },
+        { label: 'Pending', value: 3, color: 'text-orange-400' },
+        { label: 'Flagged', value: 1, color: 'text-red-400' }
+      ]
+    },
+    {
+      icon: Flag,
+      label: 'Alerts / Flags',
+      value: 2,
+      color: 'text-red-400',
+      bgColor: 'bg-red-500/10',
+      borderColor: 'border-red-500/30',
+      breakdown: [
+        { label: 'High Risk', value: 1, color: 'text-red-500' },
+        { label: 'Suspicious', value: 1, color: 'text-orange-400' },
+        { label: 'Unusual', value: 0, color: 'text-yellow-400' }
+      ]
+    },
   ]), [])
+
+  const actionItems: ActionItem[] = useMemo(() => ([
+    { id: '1', priority: 'high', message: '12 Beneficiaries pending approval', campaignName: 'Assam Flood Relief 2025', campaignId: 'assam-2025', timestamp: '2h ago' },
+    { id: '2', priority: 'medium', message: '3 Vendors awaiting verification', campaignName: 'Kerala Flood Relief', campaignId: 'kerala-2024', timestamp: '5h ago' },
+    { id: '3', priority: 'high', message: 'Campaign exceeding medicine budget', campaignName: 'Cyclone Michaung Relief', campaignId: 'tn-cyclone', timestamp: '1d ago' },
+    { id: '4', priority: 'low', message: '2 Unusual transaction patterns detected', campaignName: 'Assam Flood Relief 2025', campaignId: 'assam-2025', timestamp: '3h ago' },
+  ]), [])
+
   const campaigns = useMemo(() => ([
-    { name: 'Assam Flood Relief 2025', location: 'Assam', status: 'Active', categories: ['Food', 'Medicine', 'Transport', 'Shelter'], createdOn: '12 Jun 2025' },
-    { name: 'Kerala Flood Response', location: 'Kerala', status: 'Active', categories: ['Food', 'Medicine', 'Shelter'], createdOn: '02 Jun 2025' },
-    { name: 'Cyclone Michaung Relief', location: 'Tamil Nadu', status: 'Closed', categories: ['Food', 'Transport'], createdOn: '20 May 2025' },
+    {
+      id: 'kerala-2024',
+      name: 'Kerala Flood Relief',
+      location: 'Kerala',
+      status: 'Active',
+      categories: ['Food', 'Medicine', 'Shelter'],
+      issues: 3,
+      beneficiaries: 450,
+      vendors: 12
+    },
+    {
+      id: 'assam-2025',
+      name: 'Assam Flood Relief 2025',
+      location: 'Assam',
+      status: 'Active',
+      categories: ['Food', 'Medicine', 'Transport', 'Shelter'],
+      issues: 12, // High issues
+      beneficiaries: 1200,
+      vendors: 28
+    },
+    {
+      id: 'tn-cyclone',
+      name: 'Cyclone Michaung Relief',
+      location: 'Tamil Nadu',
+      status: 'Closed',
+      categories: ['Food', 'Transport'],
+      issues: 0,
+      beneficiaries: 800,
+      vendors: 15
+    },
   ]), [])
-  const beneficiaries = useMemo(() => ([
-    { id: 'BEN-4821', campaign: 'Assam Flood Relief 2025', status: 'Pending', approvedBy: '—', approvalDate: '—' },
-    { id: 'BEN-4730', campaign: 'Kerala Flood Response', status: 'Approved', approvedBy: 'Helping Hands NGO', approvalDate: '13 Jun 2025' },
-    { id: 'BEN-4688', campaign: 'Kerala Flood Response', status: 'Suspended', approvedBy: 'State Relief Cell', approvalDate: '05 Jun 2025' },
-  ]), [])
-  const stores = useMemo(() => ([
-    { name: 'City Medicals', category: 'Medicine', verified: true, totalPaid: 18500, active: true },
-    { name: 'Assam Relief Store #1', category: 'Food', verified: true, totalPaid: 9200, active: true },
-    { name: 'Transit Hub Services', category: 'Transport', verified: true, totalPaid: 3100, active: false },
-  ]), [])
-  const [beneficiaryAction, setBeneficiaryAction] = useState<{ id: string; action: 'Approve' | 'Suspend' } | null>(null)
-  const [storeToggle, setStoreToggle] = useState<{ name: string; active: boolean } | null>(null)
+
+  const recentPayments = [
+    { id: 'p1', title: '₹1,200 to City Meds', subtitle: 'Medicine - Assam Relief', timestamp: '10m ago', icon: CreditCard, type: 'payment' as const },
+    { id: 'p2', title: '₹500 to Fresh Foods', subtitle: 'Food - Kerala Relief', timestamp: '25m ago', icon: CreditCard, type: 'payment' as const },
+    { id: 'p3', title: '₹2,000 to Relief Transport', subtitle: 'Logistics - TN Cyclone', timestamp: '1h ago', icon: CreditCard, type: 'payment' as const },
+  ]
+
+  const recentBeneficiaries = [
+    { id: 'b1', title: 'Ramesh Kumar approved', subtitle: 'Assam Relief', timestamp: '5m ago', icon: UserPlus, type: 'beneficiary' as const },
+    { id: 'b2', title: 'Sita Devi approved', subtitle: 'Kerala Relief', timestamp: '1h ago', icon: UserPlus, type: 'beneficiary' as const },
+  ]
+
+  const recentVendors = [
+    { id: 'v1', title: 'City Meds verified', subtitle: 'Pharmacy - Assam', timestamp: '2h ago', icon: Store, type: 'vendor' as const },
+  ]
+
+  // --- RENDER ---
+
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-dark-darker via-dark-darker to-dark">
-      <div className="border-b border-dark-lighter/30 bg-dark-darker/60 backdrop-blur">
-        <div className="container mx-auto px-6 lg:px-12 py-5 flex items-center justify-between">
-          <div className="flex items-center">
-            <span className="text-white font-extrabold tracking-tight">SALVUS</span>
-          </div>
-          <div className="text-center">
-            <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent tracking-tight">
-              Admin Dashboard
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60">
-              <div className="w-6 h-6 rounded-full bg-dark-lighter/60 text-white flex items-center justify-center text-xs font-bold">A</div>
-              <div className="flex flex-col">
-                <span className="text-sm text-white leading-tight">Anurag</span>
-                <span className="text-xs text-gray-400 leading-tight inline-flex items-center gap-1"><Building2 className="w-3.5 h-3.5" /> Helping Hands NGO</span>
-              </div>
+    <div className="min-h-screen relative overflow-hidden bg-black text-gray-200">
+      {/* Animated Background */}
+      <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-accent/10 rounded-full blur-[120px] animate-pulse-slow mix-blend-screen"></div>
+        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] mix-blend-screen"></div>
+      </div>
+
+      <AdminNavbar />
+
+      <div className="container mx-auto px-6 lg:px-12 py-12 pt-28 relative z-10 space-y-12">
+
+        {/* SECTION 1: PLATFORM OVERVIEW */}
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4"
+          >
+            <div>
+              <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight">
+                Admin <span className="text-accent">Dashboard</span>
+              </h1>
+              <p className="text-gray-400 text-lg">Platform-wide health and status overview.</p>
             </div>
-            <button className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Logout</button>
+            <div className="flex gap-3">
+              <button className="p-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors">
+                <Search className="w-5 h-5 text-gray-400" />
+              </button>
+              <button className="p-2 bg-white/5 hover:bg-white/10 rounded-lg border border-white/10 transition-colors">
+                <Filter className="w-5 h-5 text-gray-400" />
+              </button>
+            </div>
+          </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((s, i) => (
+              <EnhancedStatCard key={i} {...s} delay={i * 0.1} onClick={() => { }} />
+            ))}
           </div>
         </div>
-      </div>
-      {/* Background accent glows */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl -z-10"></div>
-      <div className="container mx-auto px-6 lg:px-12 py-8">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((s, i) => {
-              const Icon = s.icon
-              return (
-                <motion.div
-                  key={i}
-                  whileHover={{ scale: 1.03 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-                  className="relative glass rounded-2xl p-6 border border-dark-lighter/50 hover:border-accent/40 hover:bg-dark-lighter/30 shadow-lg shadow-black/20"
-                >
-                  <div className="absolute -top-6 -right-6 w-24 h-24 bg-accent/10 rounded-full blur-2xl"></div>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-accent/20 to-accent/5 border border-accent/40 flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-accent" />
-                    </div>
-                    <div className="text-sm text-gray-300 font-medium">{s.label}</div>
-                  </div>
-                  <div className="text-4xl font-extrabold bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">{s.value ?? '—'}</div>
-                </motion.div>
-              )
-            })}
-          </div>
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent font-bold tracking-tight">Relief Campaigns</h2>
-            <button onClick={() => setShowCampaignCreate(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-accent to-accent-light hover:from-accent-dark hover:to-accent text-white shadow-lg shadow-accent/20 transition-all duration-300">
-              <Plus className="w-4 h-4" />
-              <span>Create Campaign</span>
+
+        {/* SECTION 3: RELIEF CAMPAIGNS HUB */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+              <ClipboardList className="w-6 h-6 text-accent" />
+              Relief Campaigns
+            </h2>
+            <button
+              onClick={() => setShowCampaignCreate(true)}
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-accent hover:bg-accent-dark text-dark-darker font-bold transition-all shadow-lg shadow-accent/20 hover:shadow-accent/40"
+            >
+              <Plus className="w-5 h-5" />
+              <span>Create New</span>
             </button>
           </div>
-          <div className="glass rounded-2xl border border-dark-lighter/50 hover:border-accent/40 transition-colors overflow-hidden mb-8 shadow-lg shadow-black/20">
+
+          <div className="glass-card rounded-3xl border border-white/5 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gradient-to-r from-dark-lighter/30 to-dark-lighter/10 border-b border-dark-lighter/50">
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Campaign Name</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Location</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Status</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Categories Enabled</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Created On</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Actions</th>
+                <thead className="bg-white/5 border-b border-white/5">
+                  <tr>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Campaign Name</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Quick Stats</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Health</th>
+                    <th className="px-6 py-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-dark-lighter/30">
+                <tbody className="divide-y divide-white/5">
                   {campaigns.map((c, i) => (
-                    <tr key={i} className="hover:bg-dark-lighter/30 transition-all duration-200">
-                      <td className="px-6 py-3 text-white">{c.name}</td>
-                      <td className="px-6 py-3 text-gray-300">{c.location}</td>
-                      <td className="px-6 py-3">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${c.status === 'Active' ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'}`}>
-                          {c.status === 'Active' ? <CheckCircle className="w-3.5 h-3.5" /> : <PauseCircle className="w-3.5 h-3.5" />}
+                    <tr key={i} className="hover:bg-white/5 transition-colors cursor-pointer group">
+                      <td className="px-6 py-4">
+                        <div className="font-bold text-white group-hover:text-accent transition-colors text-lg">{c.name}</div>
+                        <div className="text-xs text-gray-500 font-medium flex items-center gap-1 mt-1">
+                          <Building2 className="w-3 h-3" /> {c.location}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${c.status === 'Active' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'}`}>
+                          <div className={`w-1.5 h-1.5 rounded-full ${c.status === 'Active' ? 'bg-green-400 animate-pulse' : 'bg-gray-400'}`}></div>
                           {c.status}
                         </span>
                       </td>
-                      <td className="px-6 py-3 text-gray-300">{c.categories.join(', ')}</td>
-                      <td className="px-6 py-3 text-gray-300">{c.createdOn}</td>
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => setActiveCampaignView(c.name)} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 hover:border-accent/40 text-gray-300 hover:text-white hover:bg-dark-lighter/60 inline-flex items-center gap-1.5 transition-all">
-                            <Eye className="w-4 h-4" />
-                            <span className="text-sm">View</span>
-                          </button>
-                          <button onClick={() => setActiveCampaignView(c.name)} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 hover:border-accent/40 text-gray-300 hover:text-white hover:bg-dark-lighter/60 inline-flex items-center gap-1.5 transition-all">
-                            <Settings className="w-4 h-4" />
-                            <span className="text-sm">Edit Rules</span>
-                          </button>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-4 text-sm text-gray-300">
+                          <div className="flex items-center gap-1.5" title="Beneficiaries">
+                            <Users className="w-4 h-4 text-blue-400" /> {c.beneficiaries}
+                          </div>
+                          <div className="flex items-center gap-1.5" title="Vendors">
+                            <StoreIcon className="w-4 h-4 text-purple-400" /> {c.vendors}
+                          </div>
                         </div>
                       </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {activeCampaignView && (
-            <div className="glass rounded-xl p-6 border border-dark-lighter/50 mb-8">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-white font-semibold">Category Rules</h3>
-                <div className="text-xs text-gray-400">Spending rules are enforced automatically.</div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {['Food', 'Medicine', 'Transport', 'Shelter'].map((cat) => (
-                  <div key={cat} className="glass rounded-lg p-4 border border-dark-lighter/50">
-                    <div className="text-sm text-gray-300 mb-2">{cat}</div>
-                    <div className="text-xs text-gray-400 mb-1">Maximum per-beneficiary limit</div>
-                    <input type="number" min={0} placeholder="₹" className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent font-bold tracking-tight">Beneficiary Management</h2>
-            <button onClick={() => setShowBeneficiaryOnboard(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-accent to-accent-light hover:from-accent-dark hover:to-accent text-white shadow-lg shadow-accent/20 transition-all duration-300">
-              <Plus className="w-4 h-4" />
-              <span>Onboard Beneficiary</span>
-            </button>
-          </div>
-          <div className="glass rounded-2xl border border-dark-lighter/50 hover:border-accent/40 transition-colors overflow-hidden mb-8 shadow-lg shadow-black/20">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gradient-to-r from-dark-lighter/30 to-dark-lighter/10 border-b border-dark-lighter/50">
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Beneficiary ID</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Campaign</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Status</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Approved by</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Approval Date</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-dark-lighter/30">
-                  {beneficiaries.map((b) => (
-                    <tr key={b.id} className="hover:bg-dark-lighter/30 transition-all duration-200">
-                      <td className="px-6 py-3 text-white">{b.id}</td>
-                      <td className="px-6 py-3 text-gray-300">{b.campaign}</td>
-                      <td className="px-6 py-3">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${
-                          b.status === 'Approved' ? 'bg-green-500/10 text-green-500 border border-green-500/20' :
-                          b.status === 'Pending' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20' :
-                          'bg-red-500/10 text-red-500 border border-red-500/20'
-                        }`}>
-                          {b.status === 'Approved' ? <CheckCircle className="w-3.5 h-3.5" /> : b.status === 'Pending' ? <PauseCircle className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-                          {b.status}
-                        </span>
+                      <td className="px-6 py-4">
+                        {c.issues > 0 ? (
+                          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            {c.issues} Issues
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-1.5 text-green-400 text-xs font-bold">
+                            <CheckCircle className="w-4 h-4" /> Healthy
+                          </div>
+                        )}
                       </td>
-                      <td className="px-6 py-3 text-gray-300">{b.approvedBy}</td>
-                      <td className="px-6 py-3 text-gray-300">{b.approvalDate}</td>
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => setBeneficiaryAction({ id: b.id, action: 'Approve' })} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 hover:border-accent/40 text-gray-300 hover:text-white hover:bg-dark-lighter/60 text-sm transition-all">Approve</button>
-                          <button onClick={() => setBeneficiaryAction({ id: b.id, action: 'Suspend' })} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 hover:border-accent/40 text-gray-300 hover:text-white hover:bg-dark-lighter/60 text-sm transition-all">Suspend</button>
-                        </div>
+                      <td className="px-6 py-4 text-right">
+                        <Link
+                          href={`/admin/campaigns/${c.id}`}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 hover:text-white text-gray-300 border border-white/10 transition-all font-bold text-sm"
+                        >
+                          <span>Manage Campaign</span>
+                          <Settings className="w-4 h-4" />
+                        </Link>
                       </td>
                     </tr>
                   ))}
@@ -204,233 +259,46 @@ export default function AdminDashboard() {
               </table>
             </div>
           </div>
-          {beneficiaryAction && (
-            <div className="glass rounded-xl p-6 border border-dark-lighter/50 mb-8">
-              <div className="text-white font-semibold mb-2">{beneficiaryAction.action} Beneficiary: {beneficiaryAction.id}</div>
-              <div className="text-xs text-gray-400 mb-4">All admin actions are recorded for transparency.</div>
-              <div className="flex items-center gap-3">
-                <button onClick={() => setBeneficiaryAction(null)} className="px-4 py-2 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Close</button>
-                <button onClick={() => setBeneficiaryAction(null)} className="px-4 py-2 rounded-lg bg-accent text-white">Confirm</button>
-              </div>
-            </div>
-          )}
+        </motion.section>
+
+        {/* SECTION 2: ADMIN ACTION CENTER */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.3 }}
+        >
+          <ActionCenterPanel actions={actionItems} />
         </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent font-bold tracking-tight">Store Management</h2>
-            <button onClick={() => setShowStoreAdd(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-accent to-accent-light hover:from-accent-dark hover:to-accent text-white shadow-lg shadow-accent/20 transition-all duration-300">
-              <Plus className="w-4 h-4" />
-              <span>Add Store</span>
-            </button>
-          </div>
-          <div className="glass rounded-2xl border border-dark-lighter/50 hover:border-accent/40 transition-colors overflow-hidden mb-8 shadow-lg shadow-black/20">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gradient-to-r from-dark-lighter/30 to-dark-lighter/10 border-b border-dark-lighter/50">
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Store Name</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Category</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Verification Status</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Total Paid</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Active / Disabled</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-dark-lighter/30">
-                  {stores.map((s) => (
-                    <tr key={s.name} className="hover:bg-dark-lighter/30 transition-all duration-200">
-                      <td className="px-6 py-3 text-white">{s.name}</td>
-                      <td className="px-6 py-3 text-gray-300">{s.category}</td>
-                      <td className="px-6 py-3">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${s.verified ? 'bg-green-500/10 text-green-500 border border-green-500/20' : 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20'}`}>
-                          {s.verified ? <CheckCircle className="w-3.5 h-3.5" /> : <PauseCircle className="w-3.5 h-3.5" />}
-                          {s.verified ? 'Verified' : 'Pending'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3 text-gray-300">₹{s.totalPaid.toLocaleString()}</td>
-                      <td className="px-6 py-3">
-                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${s.active ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'}`}>
-                          {s.active ? 'Active' : 'Disabled'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-3">
-                        <div className="flex items-center gap-2">
-                          <button onClick={() => setStoreToggle({ name: s.name, active: true })} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 hover:border-accent/40 text-gray-300 hover:text-white hover:bg-dark-lighter/60 text-sm transition-all">Enable</button>
-                          <button onClick={() => setStoreToggle({ name: s.name, active: false })} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 hover:border-accent/40 text-gray-300 hover:text-white hover:bg-dark-lighter/60 text-sm transition-all">Disable</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-          {storeToggle && (
-            <div className="glass rounded-xl p-6 border border-dark-lighter/50 mb-8">
-              <div className="text-white font-semibold mb-2">{storeToggle.active ? 'Enable' : 'Disable'} Store: {storeToggle.name}</div>
-              <div className="text-xs text-gray-400 mb-4">Admins approve eligibility, not payments.</div>
-              <div className="flex items-center gap-3">
-                <button onClick={() => setStoreToggle(null)} className="px-4 py-2 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Close</button>
-                <button onClick={() => setStoreToggle(null)} className="px-4 py-2 rounded-lg bg-accent text-white">Confirm</button>
-              </div>
-            </div>
-          )}
-        </motion.div>
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent font-bold tracking-tight">Admin Action Log</h2>
-            <div className="text-xs text-gray-400">All admin actions are recorded for transparency.</div>
-          </div>
-          <div className="glass rounded-2xl border border-dark-lighter/50 hover:border-accent/40 transition-colors overflow-hidden shadow-lg shadow-black/20">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gradient-to-r from-dark-lighter/30 to-dark-lighter/10 border-b border-dark-lighter/50">
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Action Performed</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Admin Name</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Timestamp</th>
-                    <th className="px-6 py-3 text-sm font-semibold text-gray-300">Related Entity</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-dark-lighter/30">
-                  {[
-                    { action: 'Created Campaign: Assam Flood Relief 2025', admin: 'Anurag', time: '12 Jun 2025, 10:14 AM', entity: 'Campaign' },
-                    { action: 'Approved Beneficiary: BEN-4821', admin: 'Anurag', time: '12 Jun 2025, 10:32 AM', entity: 'Beneficiary' },
-                    { action: 'Disabled Store: Transit Hub Services', admin: 'Anurag', time: '12 Jun 2025, 11:05 AM', entity: 'Store' },
-                  ].map((l, i) => (
-                    <tr key={i} className="hover:bg-dark-lighter/30 transition-all duration-200">
-                      <td className="px-6 py-3 text-white">{l.action}</td>
-                      <td className="px-6 py-3 text-gray-300">{l.admin}</td>
-                      <td className="px-6 py-3 text-gray-300">{l.time}</td>
-                      <td className="px-6 py-3 text-gray-300">{l.entity}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </motion.div>
+
+        {/* SECTION 4: PLATFORM ACTIVITY SNAPSHOT */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-gray-400" />
+            Platform Activity Snapshot
+          </h2>
+          <ActivitySnapshot
+            payments={recentPayments}
+            beneficiaries={recentBeneficiaries}
+            vendors={recentVendors}
+          />
+        </motion.section>
+
       </div>
-      {showCampaignCreate && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center z-50">
-          <div className="w-full md:max-w-lg glass rounded-t-2xl md:rounded-2xl p-6 border border-dark-lighter/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <ClipboardList className="w-5 h-5 text-accent" />
-                <h3 className="text-white font-semibold">Create Campaign</h3>
-              </div>
-              <button onClick={() => setShowCampaignCreate(false)} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Close</button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Campaign Name</div>
-                <input type="text" className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-              </div>
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Location</div>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input type="text" className="w-full pl-10 px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-                </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Short Description</div>
-                <input type="text" className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm text-gray-300 mb-2">Start Date</div>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="date" className="w-full pl-10 px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-300 mb-2">End Date (optional)</div>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                    <input type="date" className="w-full pl-10 px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-                  </div>
-                </div>
-              </div>
-              <div className="text-xs text-gray-400">These limits control how funds can be used. Admins cannot withdraw funds.</div>
-              <div className="flex items-center gap-3 pt-2">
-                <button onClick={() => setShowCampaignCreate(false)} className="px-4 py-2 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Cancel</button>
-                <button onClick={() => setShowCampaignCreate(false)} className="px-4 py-2 rounded-lg bg-accent text-white">Create Campaign</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {showBeneficiaryOnboard && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center z-50">
-          <div className="w-full md:max-w-lg glass rounded-t-2xl md:rounded-2xl p-6 border border-dark-lighter/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-accent" />
-                <h3 className="text-white font-semibold">Onboard Beneficiary</h3>
-              </div>
-              <button onClick={() => setShowBeneficiaryOnboard(false)} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Close</button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Beneficiary ID</div>
-                <input type="text" placeholder="BEN-XXXX or NGO reference" className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-              </div>
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Assigned Campaign</div>
-                <select className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20">
-                  {campaigns.map((c) => <option key={c.name} value={c.name} className="bg-dark-lighter">{c.name}</option>)}
-                </select>
-              </div>
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Notes (optional)</div>
-                <input type="text" className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-              </div>
-              <div className="flex items-center gap-3 pt-2">
-                <button onClick={() => setShowBeneficiaryOnboard(false)} className="px-4 py-2 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Cancel</button>
-                <button onClick={() => setShowBeneficiaryOnboard(false)} className="px-4 py-2 rounded-lg bg-accent text-white">Submit for Approval</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {showStoreAdd && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-end md:items-center justify-center z-50">
-          <div className="w-full md:max-w-lg glass rounded-t-2xl md:rounded-2xl p-6 border border-dark-lighter/50">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <StoreIcon className="w-5 h-5 text-accent" />
-                <h3 className="text-white font-semibold">Add Store</h3>
-              </div>
-              <button onClick={() => setShowStoreAdd(false)} className="px-3 py-1.5 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Close</button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Store Name</div>
-                <input type="text" className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20" />
-              </div>
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Category</div>
-                <select className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20">
-                  {['Food','Medicine','Transport','Shelter'].map((cat) => <option key={cat} value={cat} className="bg-dark-lighter">{cat}</option>)}
-                </select>
-              </div>
-              <div>
-                <div className="text-sm text-gray-300 mb-2">Verification Status</div>
-                <select className="w-full px-3 py-2 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20">
-                  {['Verified','Pending'].map((v) => <option key={v} value={v} className="bg-dark-lighter">{v}</option>)}
-                </select>
-              </div>
-              <div className="text-xs text-gray-400">Admins approve eligibility, not payments.</div>
-              <div className="flex items-center gap-3 pt-2">
-                <button onClick={() => setShowStoreAdd(false)} className="px-4 py-2 rounded-lg bg-dark-lighter/40 border border-dark-lighter/60 text-gray-300 hover:bg-dark-lighter/50">Cancel</button>
-                <button onClick={() => setShowStoreAdd(false)} className="px-4 py-2 rounded-lg bg-accent text-white">Add Store</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+
+      {/* Create Campaign Modal */}
+      <AnimatePresence>
+        {showCampaignCreate && (
+          <CreateCampaignModal
+            isOpen={showCampaignCreate}
+            onClose={() => setShowCampaignCreate(false)}
+          />
+        )}
+      </AnimatePresence>
+
     </div>
   )
 }
