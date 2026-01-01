@@ -50,40 +50,29 @@ export default function DonorOverview() {
         return (
           <motion.div
             key={index}
-            initial={{ opacity: 0, y: 20, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.5, delay: index * 0.1, type: 'spring', bounce: 0.3 }}
-            whileHover={{ scale: 1.05, y: -5 }}
-            className={`relative glass rounded-2xl p-6 border-2 ${stat.borderColor} bg-gradient-to-br ${stat.bgGradient} hover:border-accent/50 transition-all duration-300 overflow-hidden group ${stat.glow} shadow-lg`}
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: index * 0.1 }}
+            whileHover={{ y: -5 }}
+            className="relative glass-card rounded-2xl p-6 group overflow-hidden"
           >
-            {/* Animated background gradient */}
-            <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>
-            
-            {/* Sparkle effect */}
-            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Sparkles className={`w-4 h-4 ${stat.color} animate-pulse`} />
-            </div>
+            {/* Hover Glow */}
+            <div className={`absolute inset-0 bg-gradient-to-br ${stat.bgGradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}></div>
 
             <div className="relative z-10">
-              <motion.div
-                whileHover={{ rotate: [0, -10, 10, -10, 0] }}
-                transition={{ duration: 0.5 }}
-                className={`inline-flex p-4 rounded-xl bg-gradient-to-br ${stat.bgGradient} border-2 ${stat.borderColor} mb-4 group-hover:scale-110 transition-transform duration-300`}
-              >
-                <Icon className={`w-7 h-7 ${stat.color}`} />
-              </motion.div>
-              
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: index * 0.1 + 0.3 }}
-                className="text-4xl font-bold text-white mb-2 bg-gradient-to-r from-white to-gray-200 bg-clip-text text-transparent"
-              >
-                {stat.value}
-              </motion.div>
-              
-              <div className="text-sm font-medium text-gray-400 uppercase tracking-wide">
-                {stat.label}
+              <div className="flex items-center justify-between mb-4">
+                <div className={`p-3 rounded-xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-300`}>
+                  <Icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <div className="text-3xl font-bold text-white tracking-tight">
+                  {stat.value}
+                </div>
+                <div className="text-sm font-medium text-gray-400">
+                  {stat.label}
+                </div>
               </div>
             </div>
           </motion.div>

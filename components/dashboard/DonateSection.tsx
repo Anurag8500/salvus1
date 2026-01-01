@@ -11,6 +11,10 @@ export default function DonateSection() {
   const [showModal, setShowModal] = useState(false)
   const [donationDetails, setDonationDetails] = useState<any>(null)
 
+  const handleClick = (id: string) => {
+    setSelectedCampaign(current => current === id ? '' : id)
+  }
+
   // Pre-select campaign if coming from Active Campaigns section
   useEffect(() => {
     const campaignId = sessionStorage.getItem('selectedCampaignId')
@@ -87,52 +91,48 @@ export default function DonateSection() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="glass rounded-2xl p-8 border border-dark-lighter/50 relative overflow-hidden"
+        className="glass-card rounded-3xl p-8 relative overflow-hidden"
       >
-        {/* Background gradient */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -z-10"></div>
-        
+
         <div className="relative">
-          <div className="text-center mb-6">
-            <h2 className="text-3xl font-bold text-white mb-2 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-              Donate to a Campaign
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Make a Donation
             </h2>
-            <p className="text-gray-400">Choose a campaign and make a difference</p>
+            <p className="text-gray-400">Secure, instant, and directly tracked on the blockchain.</p>
           </div>
 
-          <form onSubmit={handleDonate} className="space-y-6">
+          <form onSubmit={handleDonate} className="space-y-8 max-w-4xl mx-auto">
             {/* Campaign Selector - Modern Card Grid */}
             <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-4 uppercase tracking-wide">
+              <label className="block text-sm font-medium text-gray-300 mb-4">
                 Select Campaign
               </label>
-              <div className="grid grid-cols-1 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                 {campaigns.map((campaign, index) => (
                   <motion.button
                     key={campaign.id}
                     type="button"
-                    onClick={() => setSelectedCampaign(campaign.id)}
+                    onClick={() => handleClick(campaign.id)}
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className={`relative p-4 rounded-xl border-2 transition-all duration-300 text-left group ${
-                      selectedCampaign === campaign.id
-                        ? 'border-accent bg-accent/10 shadow-lg shadow-accent/20'
-                        : 'border-dark-lighter/50 bg-dark-lighter/20 hover:border-accent/50 hover:bg-dark-lighter/30'
-                    }`}
+                    className={`relative p-5 rounded-2xl border transition-all duration-300 text-left group ${selectedCampaign === campaign.id
+                      ? 'border-accent bg-accent/10'
+                      : 'border-white/10 bg-white/5 hover:border-accent/50 hover:bg-white/10'
+                      }`}
                   >
                     {selectedCampaign === campaign.id && (
                       <motion.div
                         layoutId="selectedCampaign"
-                        className="absolute inset-0 border-2 border-accent rounded-xl"
+                        className="absolute inset-0 border-2 border-accent rounded-2xl"
                         transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
                       />
                     )}
                     <div className="relative z-10">
                       <div className="flex items-start justify-between mb-2">
-                        <h3 className={`font-bold text-base ${
-                          selectedCampaign === campaign.id ? 'text-accent' : 'text-white'
-                        }`}>
+                        <h3 className={`font-bold text-base ${selectedCampaign === campaign.id ? 'text-accent' : 'text-white'
+                          }`}>
                           {campaign.name}
                         </h3>
                         {selectedCampaign === campaign.id && (
@@ -141,33 +141,24 @@ export default function DonateSection() {
                             animate={{ scale: 1 }}
                             className="w-5 h-5 rounded-full bg-accent flex items-center justify-center"
                           >
-                            <CheckCircle className="w-4 h-4 text-white" />
+                            <CheckCircle className="w-3.5 h-3.5 text-dark-darker" />
                           </motion.div>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-gray-400">
+                      <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3" />
                           <span>{campaign.location}</span>
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
-                          <span>{campaign.beneficiaries.toLocaleString()} people</span>
+                          <span>{campaign.beneficiaries.toLocaleString()} beneficiaries</span>
                         </div>
                       </div>
-                      <div className="mt-3">
-                        <div className="flex justify-between text-xs mb-1">
-                          <span className="text-gray-400">Progress</span>
-                          <span className="text-accent font-semibold">{campaign.progress}%</span>
-                        </div>
-                        <div className="w-full h-1.5 bg-dark-lighter/50 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${campaign.progress}%` }}
-                            transition={{ duration: 0.5, delay: index * 0.1 }}
-                            className="h-full bg-gradient-to-r from-accent to-accent-light rounded-full"
-                          />
-                        </div>
+
+                      {/* Mini Progress Bar */}
+                      <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+                        <div className="h-full bg-accent rounded-full" style={{ width: `${campaign.progress}%` }}></div>
                       </div>
                     </div>
                   </motion.button>
@@ -175,85 +166,68 @@ export default function DonateSection() {
               </div>
             </div>
 
-            {/* Amount Input - Enhanced */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wide">
-                Amount
-              </label>
-              <div className="relative">
-                <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-2xl font-bold text-accent">
-                  ₹
-                </span>
-                <input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  required
-                  min="1"
-                  className="w-full pl-12 pr-4 py-4 bg-dark-lighter/30 border-2 border-dark-lighter/50 rounded-xl text-white text-lg font-semibold placeholder-gray-500 focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 transition-all"
-                  placeholder="Enter amount"
-                />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Amount Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Donation Amount
+                </label>
+                <div className="relative group">
+                  <span className="absolute left-4 top-1/2 transform -translate-y-1/2 text-xl font-bold text-gray-400 group-focus-within:text-accent transition-colors">
+                    ₹
+                  </span>
+                  <input
+                    type="number"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    required
+                    min="1"
+                    className="w-full pl-10 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white text-lg font-bold placeholder-gray-500 focus:outline-none focus:border-accent/50 focus:bg-white/10 focus:ring-1 focus:ring-accent/50 transition-all"
+                    placeholder="0.00"
+                  />
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Payment Method
+                </label>
+                <div className="grid grid-cols-2 gap-3 h-[60px]"> {/* Fixed height for alignment */}
+                  <motion.button
+                    type="button"
+                    onClick={() => setPaymentMethod('UPI')}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative h-full rounded-xl border transition-all duration-300 flex items-center justify-center font-bold text-sm ${paymentMethod === 'UPI'
+                      ? 'bg-white text-dark-darker border-white'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                      }`}
+                  >
+                    UPI / QR
+                  </motion.button>
+                  <motion.button
+                    type="button"
+                    onClick={() => setPaymentMethod('Card')}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative h-full rounded-xl border transition-all duration-300 flex items-center justify-center font-bold text-sm ${paymentMethod === 'Card'
+                      ? 'bg-white text-dark-darker border-white'
+                      : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'
+                      }`}
+                  >
+                    Card
+                  </motion.button>
+                </div>
               </div>
             </div>
 
-            {/* Payment Method - Enhanced */}
-            <div>
-              <label className="block text-sm font-semibold text-gray-300 mb-3 uppercase tracking-wide">
-                Payment Method
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                <motion.button
-                  type="button"
-                  onClick={() => setPaymentMethod('UPI')}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${
-                    paymentMethod === 'UPI'
-                      ? 'bg-gradient-to-br from-accent/20 to-accent/10 border-accent text-accent shadow-lg shadow-accent/20'
-                      : 'bg-dark-lighter/30 border-dark-lighter/50 text-gray-300 hover:border-accent/50 hover:bg-dark-lighter/40'
-                  }`}
-                >
-                  <span className="font-bold text-lg">UPI</span>
-                  {paymentMethod === 'UPI' && (
-                    <motion.div
-                      layoutId="paymentMethod"
-                      className="absolute inset-0 border-2 border-accent rounded-xl"
-                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </motion.button>
-                <motion.button
-                  type="button"
-                  onClick={() => setPaymentMethod('Card')}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  className={`relative p-4 rounded-xl border-2 transition-all duration-300 ${
-                    paymentMethod === 'Card'
-                      ? 'bg-gradient-to-br from-accent/20 to-accent/10 border-accent text-accent shadow-lg shadow-accent/20'
-                      : 'bg-dark-lighter/30 border-dark-lighter/50 text-gray-300 hover:border-accent/50 hover:bg-dark-lighter/40'
-                  }`}
-                >
-                  <span className="font-bold text-lg">Card</span>
-                  {paymentMethod === 'Card' && (
-                    <motion.div
-                      layoutId="paymentMethod"
-                      className="absolute inset-0 border-2 border-accent rounded-xl"
-                      transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                    />
-                  )}
-                </motion.button>
-              </div>
-            </div>
-
-            {/* Donate Now Button - Enhanced */}
+            {/* Donate Now Button */}
             <motion.button
               type="submit"
-              whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               disabled={!selectedCampaign || !amount}
-              className="w-full py-4 bg-gradient-to-r from-accent to-accent-light hover:from-accent-dark hover:to-accent text-white font-bold rounded-xl transition-all duration-300 shadow-lg shadow-accent/30 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-4 bg-accent hover:bg-accent-dark text-dark-darker font-bold text-lg rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(45,212,191,0.3)] hover:shadow-[0_0_30px_rgba(45,212,191,0.5)] flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              <span className="text-lg">Donate Now</span>
+              <span>Confirm Donation</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
           </form>
@@ -272,7 +246,7 @@ export default function DonateSection() {
             >
               {/* Background effect */}
               <div className="absolute top-0 right-0 w-48 h-48 bg-accent/10 rounded-full blur-3xl -z-10"></div>
-              
+
               <button
                 onClick={handleCloseModal}
                 className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors z-10"
