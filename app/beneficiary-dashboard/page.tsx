@@ -1,7 +1,12 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { BadgeCheck, MapPin, Calendar, CheckCircle, Loader2, Store, CreditCard, History, Info, HeartPulse, BusFront, Home, Soup } from 'lucide-react'
+import Link from 'next/link'
+import {
+  BadgeCheck, MapPin, Calendar, CheckCircle, Loader2, Store, CreditCard,
+  History, Info, HeartPulse, BusFront, Home, Soup,
+  LogOut, User, Settings, Bell
+} from 'lucide-react'
 import { useState } from 'react'
 
 export default function BeneficiaryDashboard() {
@@ -48,355 +53,340 @@ export default function BeneficiaryDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-dark-darker via-dark-darker to-dark">
-      <div className="container mx-auto px-6 lg:px-12 py-8">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-accent/5 rounded-full blur-3xl -z-10"></div>
+    <div className="min-h-screen relative overflow-hidden bg-black">
+      {/* Animated Background */}
+      <div className="absolute inset-0 w-full h-full z-0">
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-accent/20 rounded-full blur-[100px] animate-pulse-slow mix-blend-screen"></div>
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-500/10 rounded-full blur-[100px] mix-blend-screen"></div>
+      </div>
+
+      {/* Navigation Header */}
+      <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4 glass-nav border-b border-white/5">
+        <div className="container mx-auto flex items-center justify-between">
+          {/* Logo */}
+          <Link href="/" className="group flex items-center gap-2">
+            <div className="text-2xl font-black tracking-tighter text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-accent group-hover:to-blue-400 transition-all duration-300">
+              Salvus.
+            </div>
+          </Link>
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-4">
+            <button className="p-2 rounded-full text-gray-400 hover:text-white hover:bg-white/10 transition-all relative group">
+              <Bell className="w-5 h-5" />
+              <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+            </button>
+
+            <button className="flex items-center gap-2 p-1.5 rounded-full hover:bg-white/5 transition-all group">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-blue-500 flex items-center justify-center text-dark-darker font-bold text-sm shadow-lg shadow-accent/20">
+                JD
+              </div>
+              <span className="text-sm font-medium text-gray-300 group-hover:text-white hidden sm:block">John Doe</span>
+            </button>
+
+            <Link href="/" className="p-2 rounded-full text-gray-400 hover:text-red-400 hover:bg-red-400/10 transition-all">
+              <LogOut className="w-5 h-5" />
+            </Link>
+          </div>
+        </div>
+      </nav>
+
+      <div className="container mx-auto px-6 lg:px-12 py-12 pt-28 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="mb-8 relative"
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="mb-10"
         >
-          <h1 className="text-5xl font-bold text-white mb-2 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-            Beneficiary Dashboard
+          <h1 className="text-4xl md:text-5xl font-black text-white mb-2 tracking-tight">
+            Beneficiary <span className="text-accent">Dashboard</span>
           </h1>
-          <p className="text-gray-400 text-lg">Your approved relief, safely and respectfully</p>
+          <p className="text-gray-400 text-lg">
+            Your approved relief, safely and respectfully.
+          </p>
         </motion.div>
 
+        {/* Status Card */}
         <motion.div
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.6 }}
-          className="glass neon rounded-2xl p-8 border-2 border-accent-neon shadow-neon mb-8 relative overflow-hidden"
-        >
-          <div className="absolute inset-0 -z-10 pointer-events-none">
-            <div className="absolute -top-10 -right-10 w-64 h-64 bg-accent/10 rounded-full blur-3xl"></div>
-            <div className="absolute -bottom-12 -left-12 w-72 h-72 bg-accent-light/10 rounded-full blur-3xl"></div>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
-                <CheckCircle className="w-4 h-4" />
-                <span className="text-sm font-semibold">Status: Approved</span>
-              </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-lighter/30 border border-dark-lighter/50">
-                <BadgeCheck className="w-4 h-4 text-accent" />
-                <span className="text-sm text-gray-200">Relief Campaign: <span className="font-semibold text-white">Assam Flood Relief 2025</span></span>
-              </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-lighter/30 border border-dark-lighter/50">
-                <MapPin className="w-4 h-4 text-accent" />
-                <span className="text-sm text-gray-200">Location: <span className="font-semibold text-white">Assam</span></span>
-              </div>
-            </div>
-            <div className="space-y-3">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-lighter/30 border border-dark-lighter/50">
-                <Store className="w-4 h-4 text-accent" />
-                <span className="text-sm text-gray-200">Approved by: <span className="font-semibold text-white">Helping Hands NGO</span></span>
-              </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-lighter/30 border border-dark-lighter/50">
-                <Calendar className="w-4 h-4 text-accent" />
-                <span className="text-sm text-gray-200">Approval date: <span className="font-semibold text-white">12 June 2025</span></span>
-              </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-dark-lighter/30 border border-dark-lighter/50">
-                <History className="w-4 h-4 text-accent" />
-                <span className="text-sm text-gray-200">Campaign status: <span className="font-semibold text-white">Active</span></span>
-              </div>
-            </div>
-            <div className="flex lg:justify-end">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
-                <span className="text-sm">🟢 Active Campaign</span>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="glass rounded-xl p-6 border border-dark-lighter/50 mb-8"
+          className="glass-card rounded-3xl p-6 md:p-8 mb-8 relative overflow-hidden"
         >
-          <div className="flex items-center justify-between gap-6">
+          {/* Header Row with Status */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 relative z-10 border-b border-white/5 pb-6">
             <div>
-              <div className="text-sm text-gray-300">Your Available Support</div>
-              <div className="text-3xl font-extrabold text-white mb-1 bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
-                ₹{totalRemaining.toLocaleString()} Remaining
+              <h2 className="text-2xl font-bold text-white mb-1">Assam Flood Relief 2025</h2>
+              <div className="flex items-center gap-2 text-gray-400 text-sm">
+                <MapPin className="w-4 h-4" />
+                <span>Assam Region</span>
               </div>
-              <div className="text-xs text-gray-400">Across all essential categories</div>
             </div>
-            <div className="text-base text-gray-300 font-bold">
-              Total approved limit: ₹{totalLimit.toLocaleString()}
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 shadow-[0_0_10px_rgba(34,197,94,0.3)] self-start md:self-auto">
+              <CheckCircle className="w-5 h-5" />
+              <span className="font-bold uppercase tracking-wide">Status: Approved</span>
             </div>
           </div>
-          <div className="mt-4">
-            <div className="flex justify-start text-xs text-gray-400 mb-1">
-              <span>{totalPercentRemaining}% remaining</span>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start relative z-10">
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-gray-300">
+                <div className="p-2 rounded-lg bg-white/5 text-accent"><Store className="w-5 h-5" /></div>
+                <div>
+                  <div className="text-xs text-gray-400">Approver</div>
+                  <div className="font-bold text-white">Helping Hands NGO</div>
+                </div>
+              </div>
             </div>
-            <div className="h-2 bg-dark-lighter/40 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${totalPercentRemaining}%` }}
-                transition={{ duration: 0.8 }}
-                className="h-2 bg-gradient-to-r from-accent via-teal-400 to-accent rounded-full"
-              />
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 text-gray-300">
+                <div className="p-2 rounded-lg bg-white/5 text-accent"><Calendar className="w-5 h-5" /></div>
+                <div>
+                  <div className="text-xs text-gray-400">Approval Date</div>
+                  <div className="font-bold text-white">12 June 2025</div>
+                </div>
+              </div>
+            </div>
+
+            <div className="md:text-right">
+              <div className="text-sm text-gray-400 mb-1">Total Limit Available</div>
+              <div className="text-3xl font-black text-white">₹{totalLimit.toLocaleString()}</div>
             </div>
           </div>
         </motion.div>
 
+
+        {/* Balances Grid */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.05 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-8"
         >
-          {balances.map(({ label, icon: Icon, remaining, limit }) => (
+          {balances.map(({ label, icon: Icon, remaining, limit }, idx) => (
             <motion.div
               key={label}
-              whileHover={{ scale: 1.03 }}
+              whileHover={{ y: -5 }}
               transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              className="relative overflow-hidden glass rounded-xl p-5 border border-dark-lighter/50 shadow-lg"
+              className="relative overflow-hidden glass-card rounded-2xl p-5 md:p-6 group"
             >
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-accent/10 rounded-full blur-2xl"></div>
-              <div className="flex items-center justify-between mb-3">
-                <div className="inline-flex items-center gap-2">
-                  <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent/20 to-accent-light/10 border border-accent/30 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-accent" />
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="p-3 rounded-xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-300 text-accent">
+                    <Icon className="w-6 h-6" />
                   </div>
-                  <span className="text-white font-semibold text-sm">{label}</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-500">{label}</span>
                 </div>
-              </div>
-              <div className="mb-2">
-                <div className="text-2xl font-extrabold text-white">
-                  ₹{remaining.toLocaleString()} <span className="text-base font-semibold text-gray-300">Remaining</span>
+
+                <div className="mb-3">
+                  <div className="text-2xl font-bold text-white">
+                    ₹{remaining.toLocaleString()}
+                  </div>
+                  <div className="text-sm font-medium text-gray-400 mt-1">
+                    Limit: ₹{limit.toLocaleString()}
+                  </div>
                 </div>
-                <div className="text-sm text-gray-300">of ₹{limit.toLocaleString()}</div>
-              </div>
-              <div className="text-xs text-gray-400 mb-1">{progressPercent(remaining, limit)}% remaining</div>
-              <div className="h-2.5 bg-dark-lighter/40 rounded-full overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${progressPercent(remaining, limit)}%` }}
-                  transition={{ duration: 0.8 }}
-                  className="h-2.5 bg-gradient-to-r from-accent via-teal-400 to-accent rounded-full"
-                />
+
+                <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progressPercent(remaining, limit)}%` }}
+                    transition={{ duration: 0.8, delay: idx * 0.1 }}
+                    className="h-full bg-accent rounded-full shadow-[0_0_8px_rgba(45,212,191,0.5)]"
+                  />
+                </div>
               </div>
             </motion.div>
           ))}
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8"
-        >
-          <div className="glass neon rounded-xl p-6 border-2 border-accent-neon lg:col-span-2 shadow-neon">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-accent" />
-                <h2 className="text-white font-semibold">Purchase Essentials</h2>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Purchase Form */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="lg:col-span-2 glass-card rounded-3xl p-8"
+          >
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-3 rounded-full bg-accent/10 border border-accent/20 text-accent">
+                <CreditCard className="w-6 h-6" />
               </div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent border border-accent/30">
-                <span className="text-xs">Verified Stores</span>
+              <div>
+                <h2 className="text-2xl font-bold text-white">Purchase Essentials</h2>
+                <p className="text-gray-400 text-sm">Use your credits at verified stores only.</p>
               </div>
             </div>
-            <form onSubmit={submitPurchase} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
+
+            <form onSubmit={submitPurchase} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Category Select */}
                 <div className="relative">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Category</label>
                   <button
                     type="button"
                     onClick={() => setCategoryOpen(!categoryOpen)}
-                    className="w-full pl-4 pr-10 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 appearance-none flex items-center justify-between"
+                    className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl text-white hover:bg-white/10 transition-colors"
                   >
-                    <span className="inline-flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-md bg-gradient-to-br from-accent/20 to-accent-light/10 border border-accent/30 flex items-center justify-center">
-                        {(() => {
-                          const Icon = categoryIconMap[category]
-                          return <Icon className="w-4 h-4 text-accent" />
-                        })()}
-                      </span>
-                      <span className="text-sm font-semibold">{category}</span>
-                    </span>
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <div className="flex items-center gap-3">
+                      {(() => {
+                        const Icon = categoryIconMap[category]
+                        return <Icon className="w-5 h-5 text-accent" />
+                      })()}
+                      <span className="font-semibold">{category}</span>
+                    </div>
+                    <div className="text-gray-400">▼</div>
                   </button>
+
                   {categoryOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute z-20 mt-2 w-full glass rounded-lg border border-dark-lighter/50 p-2 shadow-neon"
-                    >
-                      {categories.map((c) => {
-                        const Icon = categoryIconMap[c]
-                        return (
-                          <button
-                            key={c}
-                            type="button"
-                            onClick={() => {
-                              setCategory(c)
-                              setCategoryOpen(false)
-                            }}
-                            className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md hover:bg-dark-lighter/50 ${c === category ? 'bg-dark-lighter/40' : ''}`}
-                          >
-                            <span className="inline-flex items-center gap-2">
-                              <span className="w-7 h-7 rounded-md bg-gradient-to-br from-accent/20 to-accent-light/10 border border-accent/30 flex items-center justify-center">
-                                <Icon className="w-4 h-4 text-accent" />
-                              </span>
-                              <span className="text-sm text-white">{c}</span>
-                            </span>
-                            {c === category && (
-                              <span className="text-xs text-accent font-semibold">Selected</span>
-                            )}
-                          </button>
-                        )
-                      })}
-                    </motion.div>
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1d24] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
+                      {categories.map(c => (
+                        <button
+                          key={c}
+                          type="button"
+                          onClick={() => { setCategory(c); setCategoryOpen(false); }}
+                          className="w-full flex items-center gap-3 p-4 hover:bg-white/5 text-left transition-colors"
+                        >
+                          <div className="text-accent">
+                            {(() => { const I = categoryIconMap[c]; return <I className="w-4 h-4" /> })()}
+                          </div>
+                          <span className="text-gray-200 font-medium">{c}</span>
+                        </button>
+                      ))}
+                    </div>
                   )}
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Verified Store</label>
+
+                {/* Store Select */}
                 <div className="relative">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Verified Store</label>
                   <button
                     type="button"
                     onClick={() => setStoreOpen(!storeOpen)}
-                    className="w-full pl-4 pr-10 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20 appearance-none flex items-center justify-between"
+                    className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl text-white hover:bg-white/10 transition-colors"
                   >
-                    <span className="inline-flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-md bg-gradient-to-br from-accent/20 to-accent-light/10 border border-accent/30 flex items-center justify-center">
-                        <Store className="w-4 h-4 text-accent" />
-                      </span>
-                      <span className="text-sm font-semibold">{store || 'Select a store'}</span>
-                    </span>
-                    <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <div className="flex items-center gap-3">
+                      <Store className="w-5 h-5 text-gray-400" />
+                      <span className={store ? "font-semibold" : "text-gray-400"}>{store || "Select Store"}</span>
+                    </div>
+                    <div className="text-gray-400">▼</div>
                   </button>
+
                   {storeOpen && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -6 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute z-20 mt-2 w-full glass rounded-lg border border-dark-lighter/50 p-2 shadow-neon"
-                    >
-                      {stores.map((s) => (
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-[#1a1d24] border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50">
+                      {stores.map(s => (
                         <button
                           key={s}
                           type="button"
-                          onClick={() => {
-                            setStore(s)
-                            setStoreOpen(false)
-                          }}
-                          className={`w-full flex items-center justify-between gap-2 px-3 py-2 rounded-md hover:bg-dark-lighter/50 ${s === store ? 'bg-dark-lighter/40' : ''}`}
+                          onClick={() => { setStore(s); setStoreOpen(false); }}
+                          className="w-full flex items-center gap-3 p-4 hover:bg-white/5 text-left transition-colors"
                         >
-                          <span className="inline-flex items-center gap-2">
-                            <span className="w-7 h-7 rounded-md bg-gradient-to-br from-accent/20 to-accent-light/10 border border-accent/30 flex items-center justify-center">
-                              <Store className="w-4 h-4 text-accent" />
-                            </span>
-                            <span className="text-sm text-white">{s}</span>
-                          </span>
-                          {s === store && (
-                            <span className="text-xs text-accent font-semibold">Selected</span>
-                          )}
+                          <Store className="w-4 h-4 text-gray-400" />
+                          <span className="text-gray-200 font-medium">{s}</span>
                         </button>
                       ))}
-                    </motion.div>
+                    </div>
                   )}
                 </div>
               </div>
+
+              {/* Amount */}
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Amount (₹)</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="w-full px-4 py-3 bg-dark-lighter/30 border border-dark-lighter/50 rounded-lg text-white focus:outline-none focus:border-accent focus:ring-2 focus:ring-accent/20"
-                  placeholder="Enter amount"
-                />
+                <label className="block text-sm font-medium text-gray-300 mb-2">Amount to Pay</label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-xl font-bold text-gray-500">₹</span>
+                  <input
+                    type="number"
+                    value={amount}
+                    onWheel={(e) => (e.target as HTMLInputElement).blur()}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="w-full pl-10 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white font-bold text-lg focus:outline-none focus:border-accent/50 focus:bg-white/10 transition-all placeholder-gray-600"
+                    placeholder="0.00"
+                  />
+                </div>
               </div>
+
               <motion.button
-                whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                disabled={loading || !amount || !store}
                 type="submit"
-                disabled={loading}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-lg bg-gradient-to-r from-accent to-accent-light hover:from-accent-dark hover:to-accent text-white transition-colors disabled:opacity-70 shadow-lg shadow-accent/20 font-semibold"
+                className="w-full py-4 bg-accent hover:bg-accent-dark text-dark-darker font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(45,212,191,0.3)] hover:shadow-[0_0_30px_rgba(45,212,191,0.5)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
               >
-                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CheckCircle className="w-5 h-5" />}
                 <span>Confirm Purchase</span>
               </motion.button>
-              <p className="text-xs text-gray-400 mt-2">
-                You do not need to pay. Salvus pays the store directly.
-              </p>
+
               {message && (
-                <div className="mt-3 text-sm text-green-400">
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 text-center font-medium"
+                >
                   {message}
-                </div>
+                </motion.div>
               )}
             </form>
-          </div>
-        </motion.div>
+          </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.15 }}
-          className="glass neon rounded-xl p-6 border-2 border-accent-neon shadow-neon"
-        >
-          <div className="flex items-center gap-2 mb-4">
-            <History className="w-5 h-5 text-accent" />
-            <h2 className="text-white font-semibold">Purchase History</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="text-gray-400 border-b border-dark-lighter/40">
-                  <th className="py-2 pr-4">Store name</th>
-                  <th className="py-2 pr-4">Category</th>
-                  <th className="py-2 pr-4">Amount</th>
-                  <th className="py-2 pr-4">Date</th>
-                  <th className="py-2 pr-4">Status</th>
-                </tr>
-              </thead>
-              <tbody className="text-gray-300">
+          {/* Sidebar Stats */}
+          <div className="space-y-6">
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="glass-card rounded-3xl p-6"
+            >
+              <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+                <History className="w-5 h-5 text-accent" />
+                Recent History
+              </h3>
+              <div className="space-y-4">
                 {history.map((h, i) => (
-                  <tr key={i} className="border-b border-dark-lighter/30">
-                    <td className="py-2 pr-4">{h.store}</td>
-                    <td className="py-2 pr-4">{h.category}</td>
-                    <td className="py-2 pr-4">₹{h.amount}</td>
-                    <td className="py-2 pr-4">{h.date}</td>
-                    <td className="py-2 pr-4">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 text-green-400 px-2 py-0.5 border border-green-500/20">
-                        <CheckCircle className="w-3.5 h-3.5" />
-                        Paid
-                      </span>
-                    </td>
-                  </tr>
+                  <div key={i} className="group p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-colors">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-bold text-white">{h.store}</div>
+                      <span className="text-xs px-2 py-1 rounded bg-green-500/10 text-green-400 font-bold border border-green-500/20">PAID</span>
+                    </div>
+                    <div className="flex justify-between items-end">
+                      <div className="text-sm text-gray-400">{h.category} • {h.date}</div>
+                      <div className="text-accent font-bold">₹{h.amount}</div>
+                    </div>
+                  </div>
                 ))}
-              </tbody>
-            </table>
-          </div>
-        </motion.div>
+              </div>
+            </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="glass neon rounded-xl p-6 border-2 border-accent-neon mt-8 shadow-neon"
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <Info className="w-5 h-5 text-accent" />
-            <h2 className="text-white font-semibold">Usage Rules</h2>
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+              className="glass-card rounded-3xl p-6"
+            >
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <Info className="w-5 h-5 text-accent" />
+                Quick Rules
+              </h3>
+              <ul className="space-y-3 text-sm text-gray-300">
+                <li className="flex items-start gap-3">
+                  <span className="w-1.5 h-1.5 mt-2 rounded-full bg-accent"></span>
+                  Essentials buying only (Food, Meds, Shelter)
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-1.5 h-1.5 mt-2 rounded-full bg-accent"></span>
+                  No cash withdrawals allowed
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="w-1.5 h-1.5 mt-2 rounded-full bg-accent"></span>
+                  Misuse leads to immediate suspension
+                </li>
+              </ul>
+            </motion.div>
           </div>
-          <ul className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm text-gray-300">
-            <li className="glass rounded-lg p-3 border border-dark-lighter/50">Essentials only</li>
-            <li className="glass rounded-lg p-3 border border-dark-lighter/50">No cash withdrawals</li>
-            <li className="glass rounded-lg p-3 border border-dark-lighter/50">Misuse leads to suspension</li>
-          </ul>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
