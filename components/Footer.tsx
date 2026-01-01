@@ -67,6 +67,9 @@ export default function Footer() {
             <Link href="/campaign/start" className="w-full px-6 py-3 glass neon border-2 border-accent-neon shadow-neon text-white font-bold rounded-xl transition-all duration-300 mb-4 hover:scale-105 hover:bg-accent/20 hover:shadow-accent/40 inline-block text-center">
               Start a Relief Campaign
             </Link>
+            <Link href="/transparency" className="w-full px-6 py-3 glass neon border-2 border-accent-neon shadow-neon text-white font-bold rounded-xl transition-all duration-300 mb-2 hover:scale-105 hover:bg-accent/20 hover:shadow-accent/40 inline-block text-center">
+              View Transparency
+            </Link>
             <p className="text-xs text-gray-500">
               Hackathon demo prototype
             </p>
@@ -86,5 +89,4 @@ export default function Footer() {
     </footer>
   )
 }
-
 

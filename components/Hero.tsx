@@ -75,6 +75,9 @@ export default function Hero() {
               <Link href="/campaign/start" className="px-8 py-4 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-accent/40 inline-block text-center">
                 Start a Relief Campaign
               </Link>
+              <Link href="/transparency" className="px-8 py-4 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-accent/40 inline-block text-center">
+                View Transparency
+              </Link>
             </motion.div>
 
             {/* Trust Line */}

@@ -1,7 +1,8 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { MapPin, AlertCircle, Clock, TrendingUp, Eye, Heart, Utensils, Pill, Car, Home } from 'lucide-react'
+import Link from 'next/link'
+import { MapPin, AlertCircle, Clock, TrendingUp, Eye, Heart, Utensils, Pill, Car, Home, BadgeCheck } from 'lucide-react'
 
 export default function ActiveCampaigns() {
   const campaigns = [
@@ -199,6 +200,22 @@ export default function ActiveCampaigns() {
                       <Eye className="w-4 h-4" />
                       <span>View Details</span>
                     </motion.button>
+                    {/* View Public Audit */}
+                    <Link
+                      href={`/transparency?campaign=${(() => {
+                        const map: Record<string, string> = {
+                          kerala: 'kerala-2024',
+                          cyclone: 'cyclone-michaung',
+                          assam: 'assam-flood-2025',
+                          uttarakhand: 'assam-flood-2025',
+                        }
+                        return map[campaign.id] || 'assam-flood-2025'
+                      })()}`}
+                      className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-dark-lighter/30 hover:bg-dark-lighter/40 border border-dark-lighter/50 hover:border-accent/50 text-gray-300 hover:text-white rounded-lg transition-all duration-300 text-sm font-semibold"
+                    >
+                      <BadgeCheck className="w-4 h-4" />
+                      <span>View Public Audit</span>
+                    </Link>
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
