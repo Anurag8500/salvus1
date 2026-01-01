@@ -217,7 +217,7 @@ export default function BeneficiaryDashboard() {
                 <CreditCard className="w-6 h-6" />
               </div>
               <div>
-                <h2 className="text-2xl font-bold text-white">Purchase Essentials</h2>
+                <h2 className="text-2xl font-bold text-white">Purchase Essential</h2>
                 <p className="text-gray-400 text-sm">Use your credits at verified stores only.</p>
               </div>
             </div>
