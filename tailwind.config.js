@@ -35,6 +35,23 @@ module.exports = {
       backdropBlur: {
         glass: '12px',
       },
+      animation: {
+        'pulse-slow': 'pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'blob': 'blob 7s infinite',
+        'glow': 'glow 2s ease-in-out infinite alternate',
+      },
+      keyframes: {
+        blob: {
+          '0%': { transform: 'translate(0px, 0px) scale(1)' },
+          '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+          '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+          '100%': { transform: 'translate(0px, 0px) scale(1)' },
+        },
+        glow: {
+          'from': { boxShadow: '0 0 10px #00ffe7, 0 0 20px #00ffe7' },
+          'to': { boxShadow: '0 0 20px #00ffe7, 0 0 30px #00ffe7' },
+        }
+      },
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },

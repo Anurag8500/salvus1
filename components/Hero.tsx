@@ -1,191 +1,125 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
-import { Shield, TrendingUp, Users, CheckCircle } from 'lucide-react'
+import { Shield, ArrowRight, ChevronDown } from 'lucide-react'
+import { useRef } from 'react'
+
 
 export default function Hero() {
+  const handleScrollTo = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>, id: string) => {
+    e.preventDefault()
+    const element = document.getElementById(id)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' })
+    }
+  }
+
+  const containerRef = useRef(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"]
+  })
+
+  // Parallax effects
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "50%"])
+  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1])
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-dark-darker via-dark-darker to-dark">
-      {/* Brand - Top Left Absolute */}
-      <Link
-        href="/"
-        className="absolute top-6 left-8 z-50"
-        aria-label="Salvus home"
+    <section ref={containerRef} className="relative h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Layer */}
+      <motion.div
+        style={{ y, opacity, scale }}
+        className="absolute inset-0 w-full h-full z-0"
       >
-        <span className="text-5xl md:text-6xl font-extrabold tracking-tighter bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(20,220,190,0.25)]">
-          SALVUS
-        </span>
-      </Link>
-      {/* Subtle glow behind brand */}
-      <div className="absolute top-2 left-0 w-40 h-40 bg-accent/10 rounded-full blur-3xl -z-10"></div>
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
 
-      {/* Login Button - Top Right Absolute */}
-      <Link
-        href="/login"
-        className="absolute top-6 right-8 z-50 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl px-6 py-2 transition-all duration-300 hover:scale-105 hover:shadow-accent/40"
-      >
-        Login
-      </Link>
+        {/* Safe / Cool Glows */}
+        {/* Main center glow - stable 'safe' blue/teal */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] md:w-[600px] h-[400px] md:h-[600px] bg-accent/20 rounded-full blur-[100px] animate-pulse-slow mix-blend-screen"></div>
 
-      <div className="container mx-auto px-6 lg:px-12 py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {/* Left: Text + CTAs */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="space-y-8"
+        {/* Secondary cooler tones */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200px] md:w-[400px] h-[200px] md:h-[400px] bg-blue-500/20 rounded-full blur-[80px] animate-blob mix-blend-screen"></div>
+      </motion.div>
+
+      {/* Content Layer */}
+      <div className="container mx-auto px-6 relative z-10 text-center">
+
+        {/* Badge */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="inline-flex items-center gap-2 px-4 py-2 mb-8 rounded-full glass-panel border border-accent/20 text-accent text-sm font-medium mx-auto backdrop-blur-md"
+        >
+          <Shield className="w-4 h-4 fill-accent/20" />
+          <span className="tracking-wider uppercase text-xs">Blockchain Secured Relief</span>
+        </motion.div>
+
+        {/* Massive Title */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
+          animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
+          transition={{ duration: 1.2, ease: "easeOut" }}
+          className="relative mb-8"
+        >
+          <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-white relative z-10">
+            SALVUS
+          </h1>
+          {/* Glowing Aura behind text */}
+          <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-accent/20 absolute inset-0 blur-2xl z-0 select-none">
+            SALVUS
+          </h1>
+        </motion.div>
+
+        {/* Subtitle */}
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="text-lg md:text-2xl text-gray-400 max-w-2xl mx-auto leading-relaxed mb-12 font-light"
+        >
+          Disaster relief that is <strong className="text-white font-semibold">traceable</strong>, <strong className="text-white font-semibold">instant</strong>, and <strong className="text-white font-semibold">corruption-proof</strong>.
+        </motion.p>
+
+        {/* Buttons */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="flex flex-col sm:flex-row gap-5 justify-center items-center"
+        >
+          <Link href="/signup" className="group relative px-8 py-4 bg-white text-dark-darker font-bold rounded-full overflow-hidden transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(255,255,255,0.3)]">
+            <div className="absolute inset-0 bg-accent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            <span className="relative z-10 flex items-center gap-2 group-hover:text-dark-darker transition-colors">
+              Start Helping <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
+            </span>
+          </Link>
+
+          <a
+            href="#how-it-works"
+            onClick={(e) => handleScrollTo(e, 'how-it-works')}
+            className="px-8 py-4 text-gray-400 hover:text-white transition-colors flex items-center gap-2 cursor-pointer"
           >
-            {/* Spacer to balance layout under top-left brand */}
-            <div className="h-10 md:h-12"></div>
+            See how it works
+          </a>
+        </motion.div>
 
-            {/* Main Headline */}
-            <motion.h2
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="text-5xl lg:text-6xl font-bold leading-tight text-white"
-            >
-              Emergency Relief.
-              <br />
-              <span className="text-accent">Zero Cash Misuse.</span>
-            </motion.h2>
-
-            {/* Sub-headline */}
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-              className="text-xl text-gray-300 leading-relaxed max-w-lg"
-            >
-              Salvus ensures disaster aid is spent only on verified essentials and paid directly to trusted stores.
-            </motion.p>
-
-            {/* CTA Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-              className="flex flex-wrap gap-4 pt-4"
-            >
-              <Link href="/signup" className="px-8 py-4 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-accent/40 inline-block text-center">
-                Get Started
-              </Link>
-              <Link href="/campaign/start" className="px-8 py-4 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-accent/40 inline-block text-center">
-                Start a Relief Campaign
-              </Link>
-              <Link href="/transparency" className="px-8 py-4 glass neon border-2 border-accent-neon shadow-neon bg-accent hover:bg-accent-dark text-white font-bold rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-accent/40 inline-block text-center">
-                View Transparency
-              </Link>
-            </motion.div>
-
-            {/* Trust Line */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
-              className="flex items-center gap-2 text-sm text-gray-400 pt-4"
-            >
-              <CheckCircle className="w-4 h-4 text-accent" />
-              <span>Built for dignity, accountability, and speed.</span>
-            </motion.div>
-          </motion.div>
-
-          {/* Right: Visual */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="relative"
-          >
-            <div className="relative bg-dark/50 backdrop-blur-sm rounded-2xl p-8 border border-dark-lighter/50">
-              {/* Animated Metric Cards */}
-              <div className="grid grid-cols-2 gap-4">
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.6 }}
-                  className="bg-dark-lighter/30 p-6 rounded-xl border border-accent/20"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <TrendingUp className="w-5 h-5 text-accent" />
-                    <span className="text-xs text-gray-400 uppercase tracking-wide">Funds Distributed</span>
-                  </div>
-                  <div className="text-3xl font-bold text-white">₹8.5K</div>
-                  <div className="text-xs text-gray-500 mt-1">100% Auditable</div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.7 }}
-                  className="bg-dark-lighter/30 p-6 rounded-xl border border-accent/20"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <Users className="w-5 h-5 text-accent" />
-                    <span className="text-xs text-gray-400 uppercase tracking-wide">Beneficiaries</span>
-                  </div>
-                  <div className="text-3xl font-bold text-white">24.5K</div>
-                  <div className="text-xs text-gray-500 mt-1">Active Support</div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.8 }}
-                  className="bg-dark-lighter/30 p-6 rounded-xl border border-accent/20"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <Shield className="w-5 h-5 text-accent" />
-                    <span className="text-xs text-gray-400 uppercase tracking-wide">Verified Stores</span>
-                  </div>
-                  <div className="text-3xl font-bold text-white">1,247</div>
-                  <div className="text-xs text-gray-500 mt-1">Direct Payments</div>
-                </motion.div>
-
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5, delay: 0.9 }}
-                  className="bg-dark-lighter/30 p-6 rounded-xl border border-accent/20"
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <CheckCircle className="w-5 h-5 text-accent" />
-                    <span className="text-xs text-gray-400 uppercase tracking-wide">Transparency</span>
-                  </div>
-                  <div className="text-3xl font-bold text-white">100%</div>
-                  <div className="text-xs text-gray-500 mt-1">Real-time Audit</div>
-                </motion.div>
-              </div>
-
-              {/* Flow Diagram Lines */}
-              <div className="mt-8 pt-8 border-t border-dark-lighter/30">
-                <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-accent"></div>
-                    <span>Donor</span>
-                  </div>
-                  <div className="flex-1 h-px bg-gradient-to-r from-accent/50 via-accent to-accent/50 mx-4"></div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-accent"></div>
-                    <span>Store</span>
-                  </div>
-                  <div className="flex-1 h-px bg-gradient-to-r from-accent/50 via-accent to-accent/50 mx-4"></div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-accent"></div>
-                    <span>Beneficiary</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
       </div>
 
-      {/* Background gradient effects */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-accent/10 rounded-full blur-3xl -z-10"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-accent/5 rounded-full blur-3xl -z-10"></div>
+      {/* Scroll Indicator */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 2, duration: 1 }}
+        className="absolute bottom-10 left-1/2 -translate-x-1/2 text-gray-500 flex flex-col items-center gap-2"
+      >
+        <span className="text-[10px] uppercase tracking-[0.2em] opacity-50">Scroll</span>
+        <ChevronDown className="w-5 h-5 animate-bounce opacity-50" />
+      </motion.div>
+
     </section>
   )
 }

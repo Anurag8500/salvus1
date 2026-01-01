@@ -2,103 +2,57 @@
 
 import { motion, useInView } from 'framer-motion'
 import { useRef } from 'react'
-import { Heart, Lock, UserCheck, Store, FileCheck } from 'lucide-react'
+import { Heart, Lock, UserCheck, Store, FileCheck, ArrowRight } from 'lucide-react'
 
 export default function HowItWorks() {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const isInView = useInView(ref, { once: true, margin: '-10%' })
 
   const steps = [
-    {
-      icon: Heart,
-      title: 'Donors contribute funds',
-      number: 1,
-    },
-    {
-      icon: Lock,
-      title: 'Funds are locked with spending rules',
-      number: 2,
-    },
-    {
-      icon: UserCheck,
-      title: 'Beneficiaries receive access to essentials',
-      number: 3,
-    },
-    {
-      icon: Store,
-      title: 'Verified stores are paid instantly',
-      number: 4,
-    },
-    {
-      icon: FileCheck,
-      title: 'Every transaction is publicly auditable',
-      number: 5,
-    },
+    { icon: Heart, title: 'Donate', desc: 'Donors contribute funds to a specific campaign.' },
+    { icon: Lock, title: 'Secure', desc: 'Funds are locked in a smart contract system.' },
+    { icon: UserCheck, title: 'Verify', desc: 'Beneficiaries are verified for eligibility.' },
+    { icon: Store, title: 'Purchase', desc: 'Aid is spent only at verified partners.' },
+    { icon: FileCheck, title: 'Audit', desc: 'Every transaction is recorded and public.' },
   ]
 
   return (
-    <section ref={ref} className="py-24 bg-dark-darker">
+    <section id="how-it-works" ref={ref} className="py-32 bg-[#0b0c10] relative">
       <div className="container mx-auto px-6 lg:px-12">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="mb-20 text-center"
         >
-          <h2 className="text-4xl lg:text-5xl font-bold text-white mb-4">
-            How <span className="text-accent">Salvus</span> Works
-          </h2>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            A transparent flow that ensures aid reaches those who need it most
-          </p>
+          <h2 className="text-4xl lg:text-5xl font-bold mb-6 text-white">The <span className="text-gradient-accent">Trust Chain</span></h2>
+          <p className="text-gray-400 max-w-2xl mx-auto text-lg">A transparent, unbreakable flow ensuring 100% of aid reaches the intended destination.</p>
         </motion.div>
 
-        <div className="relative">
-          {/* Connection Line (Desktop) */}
-          <div className="hidden lg:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-accent/20 via-accent to-accent/20 transform -translate-y-1/2" />
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-8 relative">
 
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-8 relative">
-            {steps.map((step, index) => {
-              const Icon = step.icon
-              return (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={isInView ? { opacity: 1, y: 0 } : {}}
-                  transition={{ duration: 0.6, delay: index * 0.1 }}
-                  className="relative"
-                >
-                  <div className="bg-dark border border-dark-lighter/30 rounded-xl p-6 hover:border-accent/50 transition-all duration-300 hover:shadow-lg hover:shadow-accent/10 group">
-                    {/* Step Number */}
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                      <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {step.number}
-                      </div>
-                    </div>
+          {/* Connector Line */}
+          <div className="hidden lg:block absolute top-12 left-0 w-full h-0.5 bg-gradient-to-r from-white/5 via-accent/50 to-white/5 z-0"></div>
 
-                    {/* Icon */}
-                    <div className="flex justify-center mb-4 mt-2">
-                      <div className="p-4 rounded-xl bg-dark-lighter/30 border border-accent/20 group-hover:bg-accent/10 transition-colors">
-                        <Icon className="w-8 h-8 text-accent" />
-                      </div>
-                    </div>
+          {steps.map((step, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 30 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: i * 0.15 }}
+              className="relative z-10 flex flex-col items-center text-center group w-full lg:w-1/5"
+            >
+              <div className="w-24 h-24 rounded-full glass-panel flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 border border-white/10 group-hover:border-accent/50 group-hover:shadow-[0_0_30px_rgba(0,255,231,0.15)] bg-[#0b0c10]">
+                <step.icon className="w-10 h-10 text-gray-400 group-hover:text-accent transition-colors" />
+              </div>
 
-                    {/* Title */}
-                    <h3 className="text-center text-white font-semibold text-sm leading-relaxed">
-                      {step.title}
-                    </h3>
-                  </div>
+              <h3 className="text-xl font-bold text-white mb-2">{step.title}</h3>
+              <p className="text-sm text-gray-400 max-w-[180px] leading-relaxed">{step.desc}</p>
 
-                  {/* Arrow (Mobile/Tablet) */}
-                  {index < steps.length - 1 && (
-                    <div className="lg:hidden flex justify-center my-4">
-                      <div className="w-0.5 h-8 bg-gradient-to-b from-accent/50 to-accent/20"></div>
-                    </div>
-                  )}
-                </motion.div>
-              )
-            })}
-          </div>
+              {i < steps.length - 1 && (
+                <ArrowRight className="lg:hidden w-6 h-6 text-gray-600 mt-6 rotate-90" />
+              )}
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>

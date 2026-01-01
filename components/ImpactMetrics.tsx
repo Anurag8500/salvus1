@@ -4,140 +4,71 @@ import { motion, useInView } from 'framer-motion'
 import { useRef, useState, useEffect } from 'react'
 import { DollarSign, ShoppingCart, Activity, Users } from 'lucide-react'
 
-interface CounterProps {
-  value: number
-  suffix?: string
-  prefix?: string
-  duration?: number
-  isInView: boolean
-}
-
-function Counter({ value, suffix = '', prefix = '', duration = 2, isInView }: CounterProps) {
+// Counter Component - Clean & minimal
+function Counter({ value, suffix = '', prefix = '', duration = 1.5, isInView }: { value: number, suffix?: string, prefix?: string, duration?: number, isInView: boolean }) {
   const [displayValue, setDisplayValue] = useState(0)
 
   useEffect(() => {
     if (!isInView) return
-
     let startTime: number | null = null
-    const endValue = value
-
     const animate = (currentTime: number) => {
-      if (startTime === null) startTime = currentTime
+      if (!startTime) startTime = currentTime
       const progress = Math.min((currentTime - startTime) / (duration * 1000), 1)
-      
-      const easeOutQuart = 1 - Math.pow(1 - progress, 4)
-      setDisplayValue(Math.floor(easeOutQuart * endValue))
-
-      if (progress < 1) {
-        requestAnimationFrame(animate)
-      } else {
-        setDisplayValue(endValue)
-      }
+      const ease = 1 - Math.pow(1 - progress, 5) // Ease out quint
+      setDisplayValue(Math.floor(ease * value))
+      if (progress < 1) requestAnimationFrame(animate)
+      else setDisplayValue(value)
     }
-
     requestAnimationFrame(animate)
   }, [isInView, value, duration])
 
-  return (
-    <span>
-      {prefix}
-      {displayValue.toLocaleString()}
-      {suffix}
-    </span>
-  )
+  return <span>{prefix}{displayValue.toLocaleString()}{suffix}</span>
 }
 
 export default function ImpactMetrics() {
   const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-100px' })
+  const isInView = useInView(ref, { once: true, margin: '-20%' })
 
   const metrics = [
-    {
-      icon: DollarSign,
-      value: 8500,
-      prefix: '₹',
-      suffix: '',
-      label: 'Total Funds Collected',
-      color: 'text-accent',
-    },
-    {
-      icon: ShoppingCart,
-      value: 6500,
-      prefix: '₹',
-      suffix: '',
-      label: 'Funds Spent on Essentials',
-      color: 'text-accent-light',
-    },
-    {
-      icon: Activity,
-      value: 12,
-      prefix: '',
-      suffix: '',
-      label: 'Active Relief Campaigns',
-      color: 'text-accent',
-    },
-    {
-      icon: Users,
-      value: 2450,
-      prefix: '',
-      suffix: '',
-      label: 'Beneficiaries Supported',
-      color: 'text-accent-light',
-    },
+    { icon: DollarSign, value: 8500, prefix: '₹', label: 'Funds Collected' },
+    { icon: ShoppingCart, value: 6500, prefix: '₹', label: 'Essentials Bought' },
+    { icon: Activity, value: 12, suffix: '+', label: 'Active Campaigns' },
+    { icon: Users, value: 2450, suffix: '+', label: 'People Helped' },
   ]
 
   return (
-    <section ref={ref} className="py-20 bg-dark border-y border-dark-lighter/30">
-      <div className="container mx-auto px-6 lg:px-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {metrics.map((metric, index) => {
-            const Icon = metric.icon
-            return (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                animate={isInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="text-center"
-              >
-                <div className="flex justify-center mb-4">
-                  <div className={`p-4 rounded-xl bg-dark-lighter/30 border border-accent/20 ${metric.color}`}>
-                    <Icon className="w-8 h-8" />
-                  </div>
-                </div>
-                <div className="text-4xl lg:text-5xl font-bold text-white mb-2">
-                  {metric.prefix}
-                  {isInView ? (
-                    <Counter
-                      value={metric.value}
-                      suffix={metric.suffix}
-                      prefix=""
-                      isInView={isInView}
-                    />
-                  ) : (
-                    <span>0</span>
-                  )}
-                </div>
-                <div className="text-sm text-gray-400 uppercase tracking-wide">
-                  {metric.label}
-                </div>
-              </motion.div>
-            )
-          })}
-        </div>
+    <section ref={ref} className="py-24 relative overflow-hidden bg-dark-darker">
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent"></div>
 
-        {/* Badge */}
+      <div className="container mx-auto px-6 lg:px-12 relative z-10">
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={isInView ? { opacity: 1 } : {}}
-          transition={{ duration: 0.6, delay: 0.5 }}
-          className="flex justify-center mt-12"
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          className="text-center mb-16"
         >
-          <div className="inline-flex items-center gap-3 px-7 py-3 glass neon border-2 border-accent-neon shadow-neon rounded-full animate-pulse-slow backdrop-blur-md">
-            <span className="text-accent-neon text-lg font-bold drop-shadow-neon animate-glow">✔</span>
-            <span className="text-gray-100 font-semibold tracking-wide uppercase text-shadow-lg">Fully Auditable System</span>
-          </div>
+          <span className="text-accent text-sm font-bold tracking-widest uppercase mb-3 block">Real Impact</span>
+          <h2 className="text-3xl md:text-5xl font-bold text-white">Making a difference <span className="text-gradient-accent">every day.</span></h2>
         </motion.div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 lg:gap-12">
+          {metrics.map((m, i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, y: 20 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              className="group text-center"
+            >
+              <div className="mx-auto w-16 h-16 mb-6 rounded-2xl glass-panel flex items-center justify-center text-accent group-hover:scale-110 transition-transform duration-300 neon-glow">
+                <m.icon className="w-8 h-8" />
+              </div>
+              <div className="text-4xl lg:text-5xl font-bold text-white mb-2 tracking-tight">
+                <Counter value={m.value} prefix={m.prefix} suffix={m.suffix} isInView={isInView} />
+              </div>
+              <p className="text-sm text-gray-400 font-medium uppercase tracking-wider">{m.label}</p>
+            </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   )
