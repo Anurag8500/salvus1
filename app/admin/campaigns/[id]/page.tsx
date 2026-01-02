@@ -7,24 +7,21 @@ import {
     ArrowLeft, Users, Store as StoreIcon, Shield, CheckCircle,
     Settings, Search, Filter, Plus, FileText, CreditCard, AlertTriangle
 } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import AdminNavbar from '@/components/admin/AdminNavbar'
 import OnboardBeneficiaryModal from '@/components/admin/OnboardBeneficiaryModal'
 import AddVendorModal from '@/components/admin/AddVendorModal'
 import BeneficiaryDetailsModal from '@/components/admin/BeneficiaryDetailsModal'
 import VendorDetailsModal from '@/components/admin/VendorDetailsModal'
 
-// Mock Data lookup (in real app, fetch based on ID)
-const CAMPAIGN_DATA = {
-    'kerala-2024': { name: 'Kerala Flood Relief', location: 'Kerala', status: 'Active', funds: '₹2.5 Cr' },
-    'assam-2025': { name: 'Assam Flood Relief 2025', location: 'Assam', status: 'Active', funds: '₹5.0 Cr' },
-    'tn-cyclone': { name: 'Cyclone Michaung Relief', location: 'Tamil Nadu', status: 'Closed', funds: '₹1.2 Cr' },
-}
-
 export default function CampaignDetails() {
     const params = useParams()
     const campaignId = params.id as string
-    const campaign = CAMPAIGN_DATA[campaignId as keyof typeof CAMPAIGN_DATA] || { name: 'Campaign Not Found', location: 'Unknown', status: 'Unknown', funds: '0' }
+    
+    const [campaign, setCampaign] = useState<any>(null)
+    const [beneficiaries, setBeneficiaries] = useState<any[]>([])
+    const [vendors, setVendors] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
 
     const [activeTab, setActiveTab] = useState<'beneficiaries' | 'vendors' | 'settings'>('beneficiaries')
     const [showOnboardModal, setShowOnboardModal] = useState(false)
@@ -34,18 +31,58 @@ export default function CampaignDetails() {
     const [selectedBen, setSelectedBen] = useState<string | null>(null)
     const [selectedVendor, setSelectedVendor] = useState<string | null>(null)
 
-    // Mock Beneficiaries
-    const beneficiaries = [
-        { id: 'BEN-101', name: 'Ramesh K.', status: 'Approved', verified: true, location: 'Wayanad, Ward 4', risk: 'Low' },
-        { id: 'BEN-102', name: 'Sita D.', status: 'Pending', verified: false, location: 'Wayanad, Ward 2', risk: 'High' },
-        { id: 'BEN-103', name: 'Abdul R.', status: 'Approved', verified: true, location: 'Kozhikode, Ward 7', risk: 'Low' },
-    ]
+    const fetchCampaignData = async () => {
+        try {
+            const res = await fetch(`/api/campaigns/${campaignId}`)
+            if (!res.ok) throw new Error('Failed to fetch campaign')
+            const data = await res.json()
+            
+            setCampaign({
+                ...data,
+                funds: `₹${(data.totalFundsAllocated || 0).toLocaleString()}`, // Format currency
+                stats: data.stats
+            })
 
-    // Mock Vendors
-    const vendors = [
-        { id: 'STR-201', name: 'City Meds', type: 'Medicine', status: 'Verified', paid: '₹45,000', location: 'Wayanad, Main Rd', risk: 'Low' },
-        { id: 'STR-202', name: 'Relief Foods', type: 'Food', status: 'Pending', paid: '₹0', location: 'Wayanad, Mkt', risk: 'Medium' },
-    ]
+            setBeneficiaries(data.beneficiaries.map((b: any) => ({
+                id: b.beneficiaryId || b._id,
+                name: b.fullName,
+                status: b.status,
+                verified: b.status === 'Approved', // Derive verified
+                location: data.location, // Fallback to campaign location if not specific
+                risk: b.riskLevel
+            })))
+
+            setVendors(data.vendors.map((v: any) => ({
+                id: v.storeId || v._id,
+                name: v.name,
+                type: v.category,
+                status: v.status,
+                paid: `₹${(v.totalPaid || 0).toLocaleString()}`,
+                location: data.location,
+                risk: v.riskLevel
+            })))
+
+        } catch (error) {
+            console.error('Error fetching campaign details:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        if (campaignId) {
+            fetchCampaignData()
+        }
+    }, [campaignId])
+
+    if (loading) {
+        return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>
+    }
+
+    if (!campaign) {
+        return <div className="min-h-screen bg-black text-white flex items-center justify-center">Campaign not found</div>
+    }
+
 
     return (
         <div className="min-h-screen relative overflow-hidden bg-black text-gray-200">
@@ -189,7 +226,7 @@ export default function CampaignDetails() {
                                                         <AlertTriangle className="w-3 h-3" /> Med
                                                     </span>
                                                 )}
-                                                {b.risk === 'Low' && <span className="text-gray-500 text-xs">-</span>}
+                                                {b.risk === 'Low' && <span className="text-green-500/80 text-xs font-bold">Low</span>}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <button
@@ -248,9 +285,12 @@ export default function CampaignDetails() {
                                             <td className="px-6 py-4 text-gray-300">{v.type}</td>
                                             <td className="px-6 py-4 text-gray-400 text-sm">{v.location}</td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-bold ${v.status === 'Verified' ? 'text-green-400 bg-green-500/10' : 'text-yellow-400 bg-yellow-500/10'
-                                                    }`}>
-                                                    {v.status === 'Verified' && <CheckCircle className="w-3 h-3" />}
+                                                <span className={`inline-flex items-center gap-1.5 px-2 py-1 rounded text-xs font-bold ${
+                                                    (v.status === 'Verified' || v.status === 'Approved') ? 'text-green-400 bg-green-500/10' :
+                                                    (v.status === 'Pending') ? 'text-yellow-400 bg-yellow-500/10' :
+                                                    'text-red-400 bg-red-500/10'
+                                                }`}>
+                                                    {(v.status === 'Verified' || v.status === 'Approved') && <CheckCircle className="w-3 h-3" />}
                                                     {v.status}
                                                 </span>
                                             </td>
@@ -266,7 +306,7 @@ export default function CampaignDetails() {
                                                         <AlertTriangle className="w-3 h-3" /> Med
                                                     </span>
                                                 )}
-                                                {v.risk === 'Low' && <span className="text-gray-500 text-xs">-</span>}
+                                                {v.risk === 'Low' && <span className="text-green-500/80 text-xs font-bold">Low</span>}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <button
@@ -315,6 +355,8 @@ export default function CampaignDetails() {
                             isOpen={showOnboardModal}
                             onClose={() => setShowOnboardModal(false)}
                             campaignLocation={campaign.location}
+                            campaignId={campaign._id}
+                            onSuccess={fetchCampaignData}
                         />
                     )}
                     {showVendorModal && (
@@ -322,6 +364,8 @@ export default function CampaignDetails() {
                             isOpen={showVendorModal}
                             onClose={() => setShowVendorModal(false)}
                             campaignLocation={campaign.location}
+                            campaignId={campaign._id}
+                            onSuccess={fetchCampaignData}
                         />
                     )}
                     {selectedBen && (

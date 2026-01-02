@@ -21,6 +21,12 @@ const UserSchema = new mongoose.Schema({
   verificationToken: {
     type: String,
   },
+  resetPasswordToken: {
+    type: String,
+  },
+  resetPasswordExpires: {
+    type: Date,
+  },
   requiresPasswordSetup: {
     type: Boolean,
     default: false,
@@ -38,7 +44,7 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['Donor', 'Beneficiary', 'Admin'],
+    enum: ['Donor', 'Beneficiary', 'Admin', 'Vendor'],
     default: 'Donor',
   },
   createdAt: {

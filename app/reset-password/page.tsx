@@ -3,10 +3,10 @@
 import { motion } from 'framer-motion'
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Lock, Eye, EyeOff, Loader2, Shield, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
+import { Lock, Eye, EyeOff, Shield, ArrowRight, Loader2 } from 'lucide-react'
 
-export default function SetPasswordPage() {
+export default function ResetPasswordPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
@@ -41,29 +41,18 @@ export default function SetPasswordPage() {
     if (!validate()) return
     setLoading(true)
     try {
-      const res = await fetch('/api/auth/set-password', {
+      const res = await fetch('/api/auth/reset-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password, token }),
+        body: JSON.stringify({ token, password }),
       })
       const data = await res.json()
       if (!res.ok) {
-        throw new Error(data.message || 'Failed to set password')
+        throw new Error(data.message || 'Failed to reset password')
       }
-      setSuccess('Password set successfully')
+      setSuccess('Password has been reset')
       setTimeout(() => {
-        if (token) {
-          router.push('/login')
-        } else {
-          const role = (data?.role || '').toLowerCase()
-          if (role === 'admin') {
-            router.push('/admin/dashboard')
-          } else if (role === 'beneficiary') {
-            router.push('/beneficiary-dashboard')
-          } else {
-            router.push('/donor-dashboard')
-          }
-        }
+        router.push('/login')
       }, 1500)
     } catch (err: any) {
       setError(err.message)
@@ -72,16 +61,24 @@ export default function SetPasswordPage() {
     }
   }
 
- 
+  if (!token) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white">
+        <div className="text-center">
+          <Shield className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold mb-2">Invalid Link</h1>
+          <p className="text-gray-400">This password reset link is invalid or missing.</p>
+          <Link href="/login" className="mt-6 inline-block text-accent hover:underline">
+            Go to Login
+          </Link>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black">
-      {/* Animated Background */}
-      <div className="absolute inset-0 w-full h-full z-0">
-        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/20 rounded-full blur-[120px] animate-pulse-slow"></div>
-        <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-blue-500/10 rounded-full blur-[100px]"></div>
-      </div>
+      <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
 
       <div className="w-full max-w-md relative z-10 p-6">
         <motion.div
@@ -95,14 +92,14 @@ export default function SetPasswordPage() {
               SALVUS<span className="text-accent">.</span>
             </h1>
           </Link>
-          <p className="text-gray-400">Set your secure account password.</p>
+          <p className="text-gray-400">Create a new password.</p>
         </motion.div>
 
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="glass-card p-8 rounded-3xl border border-white/10 shadow-2xl backdrop-blur-xl"
+          className="glass-card p-8 rounded-3xl border border-white/10 backdrop-blur-xl"
         >
           {success ? (
             <div className="text-center py-8">
@@ -110,7 +107,7 @@ export default function SetPasswordPage() {
                 <Shield className="w-8 h-8 text-green-500" />
               </div>
               <h3 className="text-xl font-bold text-white mb-2">Success</h3>
-              <p className="text-gray-400">Redirecting...</p>
+              <p className="text-gray-400">Redirecting to login...</p>
             </div>
           ) : (
             <>
@@ -145,7 +142,6 @@ export default function SetPasswordPage() {
                       {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-2 pl-2">Minimum 6 characters required.</p>
                 </div>
 
                 <div>
@@ -178,7 +174,7 @@ export default function SetPasswordPage() {
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
                     <>
-                      <span>Set Password</span>
+                      <span>Reset Password</span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </>
                   )}
@@ -191,3 +187,4 @@ export default function SetPasswordPage() {
     </div>
   )
 }
+

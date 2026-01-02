@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
+import Beneficiary from '@/models/Beneficiary'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
@@ -40,6 +41,25 @@ export async function POST(req: Request) {
         { message: 'Please verify your email to login' },
         { status: 401 }
       )
+    }
+
+    // Enforce beneficiary status gating
+    if (user.role === 'Beneficiary') {
+      const beneficiary = await Beneficiary.findOne({ userId: user._id })
+      if (beneficiary) {
+        if (beneficiary.status === 'Pending') {
+          return NextResponse.json(
+            { message: 'Your account is pending approval. Please wait for admin approval.' },
+            { status: 403 }
+          )
+        }
+        if (beneficiary.status === 'Suspended') {
+          return NextResponse.json(
+            { message: 'Your beneficiary access is temporarily on hold due to an administrative review.' },
+            { status: 403 }
+          )
+        }
+      }
     }
 
     // Create JWT token

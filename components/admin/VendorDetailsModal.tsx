@@ -2,40 +2,58 @@
 
 import { motion } from 'framer-motion'
 import { XCircle, CheckCircle, AlertTriangle, Store, MapPin, Phone, Shield, FileText, ShoppingBag } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface VendorDetailsModalProps {
     isOpen: boolean
     onClose: () => void
-    vendorId?: string // In real app, fetch data by ID
+    vendorId?: string
 }
 
 export default function VendorDetailsModal({ isOpen, onClose, vendorId }: VendorDetailsModalProps) {
-    const [data, setData] = useState({
-        id: vendorId || 'STR-201',
-        name: 'City Meds',
-        type: 'Medical Store',
-        owner: 'Dr. A. Khan',
-        phone: '+91 999 888 7777',
-        location: {
-            state: 'Kerala',
-            district: 'Wayanad',
-            address: 'Main Road, Kalpetta'
-        },
-        status: 'Verified',
-        allowedCategories: ['Medicine', 'Hygiene'],
-        priceCaps: {
-            'Medicine': 'MRP + 0%',
-            'Hygiene': '₹50/unit cap'
-        },
-        proofType: 'Drug License',
-        proofId: 'KL-WAY-1234 (Verified)',
-        totalPaid: '₹45,000',
-        riskFlags: [],
-        notes: 'Trusted vendor since 2021.'
-    })
+    const [data, setData] = useState<any | null>(null)
+    const [loading, setLoading] = useState(false)
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            if (!isOpen || !vendorId) return
+            setLoading(true)
+            try {
+                const res = await fetch(`/api/vendors/${vendorId}`)
+                if (!res.ok) throw new Error('Failed to fetch vendor details')
+                const v = await res.json()
+                setData(v)
+            } catch (err) {
+                console.error('Vendor details fetch error:', err)
+            } finally {
+                setLoading(false)
+            }
+        }
+        fetchDetails()
+    }, [isOpen, vendorId])
+
+    const updateStatus = async (newStatus: string) => {
+        try {
+            const res = await fetch(`/api/vendors/${vendorId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            })
+            if (!res.ok) throw new Error('Failed to update status')
+            setData({ ...data, status: newStatus })
+        } catch (error) {
+            console.error('Error updating status:', error)
+        }
+    }
 
     if (!isOpen) return null
+    if (loading || !data) {
+        return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md">
+                <div className="glass-card rounded-3xl p-8 text-white">Loading...</div>
+            </div>
+        )
+    }
 
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md">
@@ -56,7 +74,7 @@ export default function VendorDetailsModal({ isOpen, onClose, vendorId }: Vendor
                                 {data.status}
                             </span>
                         </div>
-                        <div className="text-sm text-gray-400 font-mono">ID: {data.id}</div>
+                        <div className="text-sm text-gray-400 font-mono">ID: {data.storeId || data._id}</div>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-white/10 text-gray-400 hover:text-white transition-colors">
                         <XCircle className="w-8 h-8" />
@@ -70,79 +88,89 @@ export default function VendorDetailsModal({ isOpen, onClose, vendorId }: Vendor
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                             <div className="text-xs text-gray-500 uppercase font-bold mb-1">Vendor Type</div>
-                            <div className="text-white font-bold">{data.type}</div>
+                            <div className="text-white font-bold">{data.category || data.type}</div>
                         </div>
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                             <div className="text-xs text-gray-500 uppercase font-bold mb-1">Total Paid</div>
-                            <div className="text-white font-mono font-bold text-accent">{data.totalPaid}</div>
+                            <div className="text-white font-mono font-bold text-accent">₹{(data.totalPaid || 0).toLocaleString()}</div>
                         </div>
                         <div className="p-4 rounded-xl bg-white/5 border border-white/10">
                             <div className="text-xs text-gray-500 uppercase font-bold mb-1">Compliance</div>
                             <div className="text-white font-bold flex items-center gap-2">
-                                <Shield className="w-3 h-3 text-green-400" /> {data.proofType}
+                                <Shield className="w-3 h-3 text-green-400" /> {data.businessProofType || '—'}
                             </div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                            <div className="text-xs text-gray-500 uppercase font-bold mb-1">Business Proof Number</div>
+                            <div className="text-white font-mono">{data.businessProofNumber || '—'}</div>
+                        </div>
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                            <div className="text-xs text-gray-500 uppercase font-bold mb-1">Risk Flags</div>
+                            <div className="text-white">{Array.isArray(data.riskFlags) && data.riskFlags.length ? data.riskFlags.join(', ') : 'None'}</div>
                         </div>
                     </div>
 
                     {/* 2. BUSINESS DETAILS */}
                     <div className="glass-card rounded-xl p-6 border border-white/5 grid grid-cols-2 gap-6">
                         <div>
-                            <label className="text-xs font-bold text-gray-500 uppercase">Owner / Contact</label>
-                            <div className="text-gray-300 font-medium mt-1">{data.owner}</div>
+                            <label className="text-xs font-bold text-gray-500 uppercase">Authorized Contact</label>
+                            <div className="text-gray-300 font-medium mt-1">{data.contactPerson || '—'}</div>
                         </div>
                         <div>
                             <label className="text-xs font-bold text-gray-500 uppercase">Phone & Location</label>
-                            <div className="text-gray-300 font-medium mt-1">{data.phone}</div>
-                            <div className="text-gray-500 text-xs mt-1">{data.location.address}</div>
+                            <div className="text-gray-300 font-medium mt-1">{data.phone || '—'}</div>
+                            <div className="text-gray-500 text-xs mt-1">{data.area ? `${data.area}, ${data.district || ''}` : data.district || '—'}</div>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase">Email</label>
+                            <div className="text-gray-300 font-medium mt-1 font-mono">{data.email || '—'}</div>
+                        </div>
+                        <div>
+                            <label className="text-xs font-bold text-gray-500 uppercase">System Generated ID</label>
+                            <div className="text-gray-300 font-mono mt-1">{data.storeId || data._id}</div>
                         </div>
                     </div>
 
-                    {/* 3. SELLING RULES & LIMITS */}
+                    {/* 3. SELLING RULES */}
                     <div>
                         <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
                             <ShoppingBag className="w-5 h-5 text-purple-400" /> Authorized Selling Rules
                         </h3>
-                        <div className="glass-card rounded-xl border border-white/5 overflow-hidden">
-                            <table className="w-full text-left">
-                                <thead className="bg-white/5">
-                                    <tr>
-                                        <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Category</th>
-                                        <th className="px-6 py-3 text-xs font-bold text-gray-500 uppercase">Price Cap Rule</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-white/5">
-                                    {data.allowedCategories.map(cat => (
-                                        <tr key={cat}>
-                                            <td className="px-6 py-3 text-gray-300 font-medium">{cat}</td>
-                                            <td className="px-6 py-3 text-gray-400 font-mono text-xs">
-                                                {data.priceCaps[cat as keyof typeof data.priceCaps]}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+                            <div className="text-xs text-gray-500 uppercase font-bold mb-1">Allowed Categories</div>
+                            <div className="text-white">{Array.isArray(data.authorizedCategories) && data.authorizedCategories.length ? data.authorizedCategories.join(', ') : 'None'}</div>
+                        </div>
+                    </div>
+
+                    {/* 4. INTERNAL NOTES */}
+                    <div>
+                        <h3 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+                            <FileText className="w-5 h-5 text-gray-400" /> Internal Notes
+                        </h3>
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/5 text-gray-300">
+                            {data.notes && data.notes.trim().length ? data.notes : '—'}
                         </div>
                     </div>
 
                 </div>
 
                 {/* Footer Actions */}
-                <div className="p-6 border-t border-white/5 bg-black/20 backdrop-blur-sm flex justify-between items-center">
-                    <button className="text-sm font-bold text-gray-400 hover:text-white transition-colors">
-                        Flag for Audit
-                    </button>
-
-                    <div className="flex gap-3">
-                        {data.status === 'Verified' ? (
-                            <button className="px-6 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 font-bold hover:bg-red-500/20 transition-all">
-                                Suspend Vendor
-                            </button>
-                        ) : (
-                            <button className="px-6 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-bold transition-all shadow-lg shadow-green-500/20">
-                                Verify & Authorize
-                            </button>
-                        )}
-                    </div>
+                <div className="p-6 border-t border-white/5 bg-black/20 backdrop-blur-sm flex justify-end items-center gap-3">
+                    {data.status === 'Approved' ? (
+                        <button 
+                            onClick={() => updateStatus('Suspended')}
+                            className="px-6 py-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 font-bold hover:bg-red-500/20 transition-all"
+                        >
+                            Suspend Vendor
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => updateStatus('Approved')}
+                            className="px-6 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-bold transition-all shadow-lg shadow-green-500/20"
+                        >
+                            Approve Vendor
+                        </button>
+                    )}
                 </div>
 
             </motion.div>

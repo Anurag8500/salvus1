@@ -7,6 +7,7 @@ import { useState } from 'react'
 interface CreateCampaignModalProps {
     isOpen: boolean
     onClose: () => void
+    onSuccess?: () => void
 }
 
 type Category = 'Food' | 'Medicine' | 'Transport' | 'Shelter' | 'Hygiene' | 'Education'
@@ -14,8 +15,9 @@ const CATEGORIES: Category[] = ['Food', 'Medicine', 'Transport', 'Shelter', 'Hyg
 
 const DISASTER_TYPES = ['Flood', 'Cyclone', 'Earthquake', 'Fire', 'Drought', 'Other']
 
-export default function CreateCampaignModal({ isOpen, onClose }: CreateCampaignModalProps) {
+export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: CreateCampaignModalProps) {
     const [step, setStep] = useState(1)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const [formData, setFormData] = useState({
         name: '',
         disasterType: '',
@@ -55,6 +57,46 @@ export default function CreateCampaignModal({ isOpen, onClose }: CreateCampaignM
             ...prev,
             categoryLimits: { ...prev.categoryLimits, [cat]: val }
         }))
+    }
+
+    const handleSubmit = async () => {
+        if (!formData.confirmed) return
+
+        setIsSubmitting(true)
+        try {
+            const location = formData.locationDistrict 
+                ? `${formData.locationDistrict}, ${formData.locationState}`
+                : formData.locationState
+
+            const res = await fetch('/api/campaigns', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: formData.name,
+                    description: formData.description,
+                    location: location,
+                    categories: formData.categories,
+                    urgency: 'High', // Defaulting for now
+                    status: 'Active',
+                    totalFundsAllocated: Number(formData.budgetCap) || 0,
+                    // Add other fields as needed
+                }),
+            })
+
+            if (res.ok) {
+                if (onSuccess) onSuccess()
+                onClose()
+            } else {
+                const errorData = await res.json()
+                console.error('Failed to create campaign:', errorData)
+                alert(`Failed to create campaign: ${errorData.message || 'Unknown error'}`)
+            }
+        } catch (error) {
+            console.error('Error submitting campaign:', error)
+            alert('An error occurred while creating the campaign.')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
@@ -343,15 +385,21 @@ export default function CreateCampaignModal({ isOpen, onClose }: CreateCampaignM
                         </button>
                     ) : (
                         <button
-                            disabled={!formData.confirmed}
-                            onClick={onClose} // In real app, this would submit
-                            className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl transition-all shadow-lg ${formData.confirmed
+                            disabled={!formData.confirmed || isSubmitting}
+                            onClick={handleSubmit}
+                            className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl transition-all shadow-lg ${formData.confirmed && !isSubmitting
                                     ? 'bg-accent text-dark-darker hover:bg-accent-dark shadow-accent/20 cursor-pointer'
                                     : 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-50'
                                 }`}
                         >
-                            <CheckCircle className="w-5 h-5" />
-                            Launch Campaign
+                            {isSubmitting ? (
+                                <>Processing...</>
+                            ) : (
+                                <>
+                                    <CheckCircle className="w-5 h-5" />
+                                    Launch Campaign
+                                </>
+                            )}
                         </button>
                     )}
                 </div>

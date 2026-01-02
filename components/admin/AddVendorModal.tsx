@@ -2,13 +2,15 @@
 
 import { motion } from 'framer-motion'
 import { XCircle, ChevronRight, ChevronLeft, CheckCircle, Store, MapPin, Phone, Shield, AlertTriangle, FileText, ShoppingBag, Banknote } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface AddVendorModalProps {
     isOpen: boolean
     onClose: () => void
     campaignLocation?: string
     campaignCategories?: string[]
+    campaignId?: string
+    onSuccess?: () => void
 }
 
 const VENDOR_TYPES = ['Medical Store', 'Grocery / Ration Shop', 'Transport Provider', 'Shelter Provider', 'Other']
@@ -18,9 +20,12 @@ export default function AddVendorModal({
     isOpen,
     onClose,
     campaignLocation = 'Kerala',
-    campaignCategories = ['Food', 'Medicine', 'Transport', 'Shelter', 'Hygiene']
+    campaignCategories = ['Food', 'Medicine', 'Transport', 'Shelter', 'Hygiene'],
+    campaignId,
+    onSuccess
 }: AddVendorModalProps) {
     const [step, setStep] = useState(1)
+    const [isSubmitting, setIsSubmitting] = useState(false)
     const [formData, setFormData] = useState({
         name: '',
         type: '',
@@ -30,10 +35,10 @@ export default function AddVendorModal({
 
         phone: '',
         email: '',
+        confirmEmail: '',
         contactPerson: '',
 
         selectedCategories: [] as string[],
-        priceCaps: {} as Record<string, string>,
 
         proofType: '',
         proofNumber: '',
@@ -42,6 +47,13 @@ export default function AddVendorModal({
 
         confirmed: false
     })
+    const [systemId, setSystemId] = useState<string>(() => `VEN-${Math.floor(1000 + Math.random() * 9000)}`)
+
+    useEffect(() => {
+        if (isOpen) {
+            setSystemId(`VEN-${Math.floor(1000 + Math.random() * 9000)}`)
+        }
+    }, [isOpen])
 
     // Prevent background scroll when modal is open
     if (!isOpen) return null
@@ -62,11 +74,78 @@ export default function AddVendorModal({
         }))
     }
 
-    const handlePriceCapChange = (cat: string, val: string) => {
-        setFormData(prev => ({
-            ...prev,
-            priceCaps: { ...prev.priceCaps, [cat]: val }
-        }))
+    const handleSubmit = async () => {
+        if (!formData.confirmed) return
+        if (!campaignId) {
+            console.error("Campaign ID missing")
+            return
+        }
+
+        if (!formData.name || !formData.type || !formData.district || !formData.area) {
+            alert('Please fill in required fields: Name, Type, District, Area')
+            setStep(1)
+            return
+        }
+        if (!formData.contactPerson) {
+            alert('Authorized Contact Person is required')
+            setStep(1)
+            return
+        }
+        if (!formData.email) {
+            alert('Email Address is required')
+            setStep(2)
+            return
+        }
+        if (!formData.confirmEmail) {
+            alert('Please confirm the email address')
+            setStep(2)
+            return
+        }
+        if (formData.email.trim() !== formData.confirmEmail.trim()) {
+            alert('Email and Confirm Email must match')
+            setStep(2)
+            return
+        }
+
+        setIsSubmitting(true)
+        try {
+            const res = await fetch('/api/vendors', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    campaignId,
+                    name: formData.name,
+                    type: formData.type,
+                    district: formData.district,
+                    area: formData.area,
+                    phone: formData.phone,
+                    email: formData.email,
+                    contactPerson: formData.contactPerson,
+                    category: formData.type,
+                    authorizedCategories: formData.selectedCategories,
+                    businessProofType: formData.proofType,
+                    businessProofNumber: formData.proofNumber,
+                    riskFlags: formData.riskFlags,
+                    notes: formData.notes,
+                    status: 'Pending',
+                    verified: false
+                }),
+            })
+
+            if (res.ok) {
+                if (onSuccess) onSuccess()
+                onClose()
+            } else {
+                const errorData = await res.json()
+                console.error('Failed to create vendor:', errorData)
+                alert(`Failed to create vendor: ${errorData.message || 'Unknown error'}`)
+            }
+        } catch (error) {
+            console.error('Error submitting vendor:', error)
+            alert('An error occurred while onboarding the vendor.')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     const toggleRiskFlag = (flag: string) => {
@@ -126,7 +205,7 @@ export default function AddVendorModal({
                             <div className="space-y-4">
                                 <div className="p-3 rounded-lg bg-white/5 border border-white/10">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">System Generated ID</label>
-                                    <div className="text-lg font-mono text-gray-300">VEN-{Math.floor(1000 + Math.random() * 9000)}</div>
+                                    <div className="text-lg font-mono text-gray-300">{systemId}</div>
                                 </div>
 
                                 <div>
@@ -137,6 +216,16 @@ export default function AddVendorModal({
                                         type="text"
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent/50"
                                         placeholder="e.g. Rahman Medical Store"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="text-sm font-bold text-gray-300 mb-2 block">Authorized Contact Person <span className="text-red-500">*</span></label>
+                                    <input
+                                        type="text"
+                                        value={formData.contactPerson}
+                                        onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent/50"
+                                        placeholder="Manager Name"
                                     />
                                 </div>
 
@@ -210,7 +299,7 @@ export default function AddVendorModal({
                                 </div>
 
                                 <div>
-                                    <label className="text-sm font-bold text-gray-300 mb-2 block">Email Address (Optional)</label>
+                                    <label className="text-sm font-bold text-gray-300 mb-2 block">Email Address <span className="text-red-500">*</span></label>
                                     <input
                                         type="email"
                                         value={formData.email}
@@ -219,15 +308,14 @@ export default function AddVendorModal({
                                         placeholder="store@example.com"
                                     />
                                 </div>
-
                                 <div>
-                                    <label className="text-sm font-bold text-gray-300 mb-2 block">Authorized Contact Person (Optional)</label>
+                                    <label className="text-sm font-bold text-gray-300 mb-2 block">Confirm Email Address <span className="text-red-500">*</span></label>
                                     <input
-                                        type="text"
-                                        value={formData.contactPerson}
-                                        onChange={(e) => handleInputChange('contactPerson', e.target.value)}
+                                        type="email"
+                                        value={formData.confirmEmail}
+                                        onChange={(e) => handleInputChange('confirmEmail', e.target.value)}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent/50"
-                                        placeholder="Manager Name"
+                                        placeholder="re-enter email"
                                     />
                                 </div>
                             </div>
@@ -266,32 +354,7 @@ export default function AddVendorModal({
                                 </div>
                             </div>
 
-                            {formData.selectedCategories.length > 0 && (
-                                <div className="space-y-4 pt-4 border-t border-white/5">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <Banknote className="w-4 h-4 text-green-400" />
-                                        <h4 className="font-bold text-gray-300 text-sm uppercase tracking-wider">Price Caps (Optional)</h4>
-                                    </div>
-                                    <p className="text-xs text-gray-500 mb-4">Set maximum allowed prices to prevent inflation.</p>
-
-                                    <div className="space-y-3">
-                                        {formData.selectedCategories.map(cat => (
-                                            <div key={cat} className="flex items-center gap-4">
-                                                <div className="w-32 text-sm font-medium text-gray-300">{cat} Item Cap</div>
-                                                <div className="flex-1 relative">
-                                                    <span className="absolute left-3 top-2 text-gray-500 text-sm">₹</span>
-                                                    <input
-                                                        type="text"
-                                                        placeholder="e.g. 50/unit"
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-8 pr-4 py-2 text-sm text-white focus:outline-none focus:border-accent/50"
-                                                        onChange={(e) => handlePriceCapChange(cat, e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            {/* Price Caps removed */}
                         </motion.div>
                     )}
 
@@ -423,15 +486,15 @@ export default function AddVendorModal({
                         </button>
                     ) : (
                         <button
-                            disabled={!formData.confirmed}
-                            onClick={onClose}
-                            className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl transition-all shadow-lg ${formData.confirmed
+                            disabled={!formData.confirmed || isSubmitting}
+                            onClick={handleSubmit}
+                            className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl transition-all shadow-lg ${formData.confirmed && !isSubmitting
                                     ? 'bg-accent text-dark-darker hover:bg-accent-dark shadow-accent/20 cursor-pointer'
                                     : 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-50'
                                 }`}
                         >
-                            <CheckCircle className="w-5 h-5" />
-                            Add Vendor
+                            <Store className="w-5 h-5" />
+                            {isSubmitting ? 'Onboarding...' : 'Onboard Vendor'}
                         </button>
                     )}
                 </div>

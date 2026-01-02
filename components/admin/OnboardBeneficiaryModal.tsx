@@ -2,12 +2,14 @@
 
 import { motion } from 'framer-motion'
 import { XCircle, ChevronRight, ChevronLeft, CheckCircle, User, MapPin, Phone, Shield, AlertTriangle, Info, FileText, CreditCard } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 interface OnboardBeneficiaryModalProps {
     isOpen: boolean
     onClose: () => void
     campaignLocation?: string // To auto-fill state
+    campaignId?: string
+    onSuccess?: () => void
 }
 
 const GENDERS = ['Male', 'Female', 'Other', 'Prefer not to say']
@@ -15,8 +17,10 @@ const AGE_RANGES = ['0-12', '13-18', '19-60', '60+']
 const VULNERABILITY_CATS = ['Senior Citizen', 'Child', 'Disabled', 'Pregnant', 'Single Parent', 'None']
 const ID_TYPES = ['Aadhaar (Last 4)', 'Ration Card', 'NGO ID', 'Local Authority Cert']
 
-export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocation = 'Kerala' }: OnboardBeneficiaryModalProps) {
+export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocation = 'Kerala', campaignId, onSuccess }: OnboardBeneficiaryModalProps) {
     const [step, setStep] = useState(1)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [systemId, setSystemId] = useState<string>(() => `BEN-${Math.floor(1000 + Math.random() * 9000)}`)
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -32,6 +36,7 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
 
         phone: '',
         email: '',
+        confirmEmail: '',
         altContact: '',
 
         idType: '',
@@ -41,6 +46,12 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
 
         confirmed: false
     })
+
+    useEffect(() => {
+        if (isOpen) {
+            setSystemId(`BEN-${Math.floor(1000 + Math.random() * 9000)}`)
+        }
+    }, [isOpen])
 
     // Prevent background scroll when modal is open
     if (!isOpen) return null
@@ -68,6 +79,66 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
                 ? prev.riskFlags.filter(f => f !== flag)
                 : [...prev.riskFlags, flag]
         }))
+    }
+
+    const handleSubmit = async () => {
+        if (!formData.confirmed) return
+        if (!campaignId) {
+            console.error("Campaign ID missing")
+            return
+        }
+        // Confirm Email validation
+        if (!formData.email || !formData.confirmEmail) {
+            alert('Please enter and confirm the email address')
+            setStep(3)
+            return
+        }
+        if (formData.email.trim() !== formData.confirmEmail.trim()) {
+            alert('Email and Confirm Email must match')
+            setStep(3)
+            return
+        }
+
+        setIsSubmitting(true)
+        try {
+            const res = await fetch('/api/beneficiaries', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    campaignId,
+                    fullName: `${formData.firstName} ${formData.lastName}`.trim(),
+                    gender: formData.gender,
+                    ageType: formData.ageType,
+                    age: formData.age ? Number(formData.age) : undefined,
+                    ageRange: formData.ageRange,
+                    district: formData.district,
+                    locality: formData.locality,
+                    phone: formData.phone,
+                    email: formData.email,
+                    idType: formData.idType,
+                    idNumber: formData.idNumber,
+                    status: 'Pending',
+                    riskLevel: formData.riskFlags.length > 0 ? 'High' : 'Low',
+                    vulnerabilities: formData.vulnerabilities,
+                    riskFlags: formData.riskFlags,
+                    internalNotes: formData.internalNotes,
+                }),
+            })
+
+            if (res.ok) {
+                if (onSuccess) onSuccess()
+                onClose()
+            } else {
+                const errorData = await res.json()
+                console.error('Failed to create beneficiary:', errorData)
+                alert(errorData.message || 'Failed to create beneficiary')
+            }
+        } catch (error) {
+            console.error('Error submitting beneficiary:', error)
+            alert('An error occurred while onboarding the beneficiary.')
+        } finally {
+            setIsSubmitting(false)
+        }
     }
 
     return (
@@ -118,7 +189,7 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
                             <div className="space-y-4">
                                 <div className="p-3 rounded-lg bg-white/5 border border-white/10">
                                     <label className="text-xs font-bold text-gray-500 uppercase tracking-widest">System Generated ID</label>
-                                    <div className="text-lg font-mono text-gray-300">BEN-{Math.floor(1000 + Math.random() * 9000)}</div>
+                                    <div className="text-lg font-mono text-gray-300">{systemId}</div>
                                 </div>
 
                                 <div>
@@ -268,14 +339,26 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
                             </div>
 
                             <div>
-                                <label className="text-sm font-bold text-gray-300 mb-2 block">Email Address (Optional)</label>
+                                <label className="text-sm font-bold text-gray-300 mb-2 block">Email Address <span className="text-red-500">*</span></label>
                                 <input
                                     type="email"
                                     value={formData.email}
                                     onChange={(e) => handleInputChange('email', e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent/50"
-                                    placeholder="email@example.com"
+                                    placeholder="beneficiary@example.com"
                                 />
+                                <p className="text-xs text-gray-500 mt-1">Required for account access.</p>
+                            </div>
+                            <div>
+                                <label className="text-sm font-bold text-gray-300 mb-2 block">Confirm Email Address <span className="text-red-500">*</span></label>
+                                <input
+                                    type="email"
+                                    value={formData.confirmEmail}
+                                    onChange={(e) => handleInputChange('confirmEmail', e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent/50"
+                                    placeholder="re-enter email"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Enter the same email again to confirm.</p>
                             </div>
                         </motion.div>
                     )}
@@ -321,6 +404,8 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
                                         <input
                                             type="text"
                                             placeholder="Last 4 digits only / ID Number"
+                                            value={formData.idNumber}
+                                            onChange={(e) => handleInputChange('idNumber', e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent/50"
                                         />
                                     )}
@@ -343,6 +428,17 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
                                             </button>
                                         ))}
                                     </div>
+                                </div>
+
+                                <div>
+                                    <label className="text-sm font-bold text-gray-300 mb-2 block">Internal Notes</label>
+                                    <textarea
+                                        value={formData.internalNotes}
+                                        onChange={(e) => handleInputChange('internalNotes', e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-accent/50"
+                                        placeholder="Enter any internal notes for this beneficiary"
+                                        rows={4}
+                                    />
                                 </div>
                             </div>
                         </motion.div>
@@ -409,14 +505,14 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
                     ) : (
                         <button
                             disabled={!formData.confirmed}
-                            onClick={onClose}
-                            className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl transition-all shadow-lg ${formData.confirmed
+                            onClick={handleSubmit}
+                            className={`flex items-center gap-2 px-8 py-3 font-bold rounded-xl transition-all shadow-lg ${formData.confirmed && !isSubmitting
                                     ? 'bg-accent text-dark-darker hover:bg-accent-dark shadow-accent/20 cursor-pointer'
                                     : 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-50'
                                 }`}
                         >
                             <CheckCircle className="w-5 h-5" />
-                            Onboard Beneficiary
+                            {isSubmitting ? 'Onboarding...' : 'Onboard Beneficiary'}
                         </button>
                     )}
                 </div>
