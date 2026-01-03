@@ -63,8 +63,21 @@ export default function RequestDetailPage({ params }: { params: { id: string } }
         });
     }, [data]);
 
-    const handleAction = () => {
-        setModalType(null);
+    const handleAction = async () => {
+        try {
+            if (modalType === "approve") {
+                const res = await fetch(`/api/campaign-requests/${params.id}/approve`, { method: "POST" });
+                if (!res.ok) {
+                    const d = await res.json().catch(() => ({}));
+                    throw new Error(d?.message || "Approval failed");
+                }
+                setStatus("Approved");
+            }
+        } catch (e: any) {
+            setError(e?.message || "Action failed");
+        } finally {
+            setModalType(null);
+        }
     };
 
     if (loading) {

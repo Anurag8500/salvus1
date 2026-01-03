@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { OAuth2Client } from 'google-auth-library'
 import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
+import CampaignRequest from '@/models/CampaignRequest'
 import jwt from 'jsonwebtoken'
 import { cookies } from 'next/headers'
 
@@ -83,13 +84,15 @@ export async function POST(req: Request) {
         await user.save()
       }
     } else {
+      const approvedInvite = await CampaignRequest.findOne({ officialEmail: email, status: 'Approved' }).lean()
+      const role: 'Admin' | 'Donor' | 'Beneficiary' = approvedInvite ? 'Admin' : 'Donor'
       user = await User.create({
         name,
         email,
         googleId,
         profilePicture: picture,
         authProvider: 'google',
-        role: 'Donor',
+        role,
         isVerified: true,
         requiresPasswordSetup: true,
       })

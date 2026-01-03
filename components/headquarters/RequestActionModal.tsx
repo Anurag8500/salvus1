@@ -63,19 +63,19 @@ export default function RequestActionModal({
                 <div className="p-8 space-y-6">
                     {isApprove ? (
                         <div className="text-slate-300 text-sm space-y-4">
-                            <p>Are you sure you want to approve this organization?</p>
+                            <p>By approving this request:</p>
                             <ul className="space-y-3">
                                 <li className="flex items-center gap-3 bg-white/5 p-3 rounded-lg border border-white/5">
                                     <CheckCircle className="w-4 h-4 text-accent" />
-                                    <span>Admin account created</span>
+                                    <span>An admin signup invitation will be generated</span>
                                 </li>
                                 <li className="flex items-center gap-3 bg-white/5 p-3 rounded-lg border border-white/5">
                                     <CheckCircle className="w-4 h-4 text-accent" />
-                                    <span>Activation email sent</span>
+                                    <span>A signup link will be emailed to the organization</span>
                                 </li>
                                 <li className="flex items-center gap-3 bg-white/5 p-3 rounded-lg border border-white/5">
                                     <CheckCircle className="w-4 h-4 text-accent" />
-                                    <span>Campaign access granted</span>
+                                    <span>Admin access will be enabled after signup completion</span>
                                 </li>
                             </ul>
                         </div>

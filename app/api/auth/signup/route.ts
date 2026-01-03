@@ -4,10 +4,11 @@ import User from '@/models/User'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
 import { sendVerificationEmail } from '@/lib/email'
+import jwt from 'jsonwebtoken'
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json()
+    const { name, email, password, inviteToken } = await req.json()
 
     if (!name || !email || !password) {
       return NextResponse.json(
@@ -31,12 +32,23 @@ export async function POST(req: Request) {
     const hashedPassword = await bcrypt.hash(password, salt)
 
     const verificationToken = crypto.randomBytes(32).toString('hex')
+    let role: 'Donor' | 'Admin' | 'Beneficiary' = 'Donor'
+    if (inviteToken) {
+      try {
+        const decoded: any = jwt.verify(inviteToken, process.env.JWT_SECRET || 'fallback_secret')
+        if (decoded?.type === 'admin_invite' && decoded?.email?.toLowerCase() === email.toLowerCase()) {
+          role = 'Admin'
+        }
+      } catch {
+        // ignore invalid token, fallback to Donor
+      }
+    }
 
     const user = await User.create({
       name,
       email,
       password: hashedPassword,
-      role: 'Donor',
+      role,
       verificationToken,
     })
 

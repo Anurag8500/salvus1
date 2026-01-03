@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { Mail, Lock, User, Shield, ArrowRight, Eye, EyeOff, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -10,12 +11,14 @@ import { GoogleOAuthProvider, googleLogout, useGoogleLogin } from '@react-oauth/
 
 export default function SignupPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   })
+  const [inviteToken, setInviteToken] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -23,6 +26,10 @@ export default function SignupPage() {
 
   useEffect(() => {
     googleLogout()
+    const token = searchParams.get('invite')
+    if (token) {
+      setInviteToken(token)
+    }
   }, [])
 
   function GoogleButton({ onSuccess, onError }: { onSuccess: (tokenResponse: any) => void; onError: () => void }) {
@@ -119,6 +126,7 @@ export default function SignupPage() {
           name: formData.name,
           email: formData.email,
           password: formData.password,
+          inviteToken,
         }),
       })
 

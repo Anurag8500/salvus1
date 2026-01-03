@@ -92,6 +92,32 @@ export const sendActivationEmail = async (email: string, token: string) => {
   }
 }
 
+export const sendAdminInviteEmail = async (email: string, token: string) => {
+  const inviteUrl = `${process.env.NEXT_PUBLIC_APP_URL}/signup?invite=${token}`
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Admin Invite – Activate Your SALVUS Admin Access',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #0d9488; margin-bottom: 8px;">Admin Invite</h2>
+        <p style="margin: 0 0 12px;">You have been invited to join SALVUS as an organization administrator.</p>
+        <p style="margin: 0 0 16px;">Click the button below to complete signup and activate your admin access.</p>
+        <a href="${inviteUrl}" style="display: inline-block; background-color: #0d9488; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 8px; font-weight: bold;">Accept Invite</a>
+        <p style="margin-top: 24px; font-size: 14px; color: #666;">Or copy and paste this link in your browser:</p>
+        <p style="font-size: 12px; color: #666; word-break: break-all;">${inviteUrl}</p>
+      </div>
+    `,
+  }
+  try {
+    await transporter.sendMail(mailOptions)
+    console.log('Admin invite email sent to ' + email)
+  } catch (error) {
+    console.error('Error sending admin invite email:', error)
+    throw new Error('Could not send admin invite email')
+  }
+}
+
 export const sendSuspensionEmail = async (email: string) => {
   const mailOptions = {
     from: process.env.EMAIL_USER,
