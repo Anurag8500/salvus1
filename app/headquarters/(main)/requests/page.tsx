@@ -1,40 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Search, Filter, Calendar, ChevronRight, Eye } from "lucide-react";
+import { Search, Filter } from "lucide-react";
 import StatusBadge from "@/components/headquarters/StatusBadge";
 
-// Mock Data Type
 interface CampaignRequest {
-    id: number;
-    orgName: string;
-    type: "NGO" | "Govt";
-    email: string;
-    submittedDate: string;
+    id: string;
+    organizationName: string;
+    organizationType: string;
+    officialEmail: string;
     status: "Pending" | "Approved" | "Rejected";
+    createdAt: string;
 }
-
-const MOCK_REQUESTS: CampaignRequest[] = [
-    { id: 101, orgName: "Global Relief Fund", type: "NGO", email: "contact@grf.org", submittedDate: "2024-03-15", status: "Pending" },
-    { id: 102, orgName: "Local Shelter Initiative", type: "NGO", email: "info@shelter.org", submittedDate: "2024-03-14", status: "Approved" },
-    { id: 103, orgName: "Dept of Disaster Mgmt", type: "Govt", email: "admin@ddm.gov", submittedDate: "2024-03-12", status: "Pending" },
-    { id: 104, orgName: "Fake Charity Corp", type: "NGO", email: "ceo@gmail.com", submittedDate: "2024-03-10", status: "Rejected" },
-    { id: 105, orgName: "Wildlife Rescue", type: "NGO", email: "help@wildlife.org", submittedDate: "2024-03-09", status: "Approved" },
-    { id: 106, orgName: "Flood Victims Aid", type: "NGO", email: "support@fva.org", submittedDate: "2024-03-08", status: "Pending" },
-    { id: 107, orgName: "City Response Team", type: "Govt", email: "city@response.gov", submittedDate: "2024-03-05", status: "Approved" },
-    { id: 108, orgName: "Unverified Group", type: "NGO", email: "anon@yahoo.com", submittedDate: "2024-03-01", status: "Pending" },
-];
 
 export default function RequestsPage() {
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
     const [typeFilter, setTypeFilter] = useState("All");
+    const [requests, setRequests] = useState<CampaignRequest[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
-    const filteredRequests = MOCK_REQUESTS.filter((req) => {
-        const matchesSearch = req.orgName.toLowerCase().includes(searchTerm.toLowerCase()) || req.email.toLowerCase().includes(searchTerm.toLowerCase());
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await fetch("/api/campaign-requests");
+                if (!res.ok) throw new Error("Failed to load requests");
+                const data = await res.json();
+                const mapped: CampaignRequest[] = (data || []).map((r: any) => ({
+                    id: r.id,
+                    organizationName: r.organizationName,
+                    organizationType: r.organizationType,
+                    officialEmail: r.officialEmail,
+                    status: r.status,
+                    createdAt: r.createdAt,
+                }));
+                setRequests(mapped);
+            } catch (e: any) {
+                setError(e?.message || "Unable to fetch requests");
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, []);
+
+    const filteredRequests = requests.filter((req) => {
+        const matchesSearch =
+            req.organizationName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            req.officialEmail.toLowerCase().includes(searchTerm.toLowerCase());
         const matchesStatus = statusFilter === "All" || req.status === statusFilter;
-        const matchesType = typeFilter === "All" || req.type === typeFilter;
+        const matchesType = typeFilter === "All" || req.organizationType === typeFilter;
         return matchesSearch && matchesStatus && matchesType;
     });
 
@@ -47,7 +64,6 @@ export default function RequestsPage() {
                 </div>
             </div>
 
-            {/* Filters */}
             <div className="glass-panel p-2 rounded-2xl flex flex-col md:flex-row gap-2">
                 <div className="flex-1 relative">
                     <Search className="absolute left-4 top-3.5 h-5 w-5 text-slate-500" />
@@ -93,9 +109,13 @@ export default function RequestsPage() {
                 </div>
             </div>
 
-            {/* Table */}
             <div className="glass-panel rounded-2xl overflow-hidden border border-white/5">
                 <div className="overflow-x-auto">
+                    {loading ? (
+                        <div className="px-8 py-10 text-slate-500">Loading...</div>
+                    ) : error ? (
+                        <div className="px-8 py-10 text-red-400">{error}</div>
+                    ) : (
                     <table className="w-full text-left text-sm text-slate-400">
                         <thead className="bg-white/[0.03] text-slate-200 uppercase text-xs font-semibold tracking-wider">
                             <tr>
@@ -113,21 +133,21 @@ export default function RequestsPage() {
                                         <td className="px-8 py-4">
                                             <div className="flex items-center gap-3">
                                                 <div className="w-8 h-8 rounded bg-gradient-to-tr from-slate-800 to-slate-700 flex items-center justify-center text-xs font-bold text-white border border-white/10">
-                                                    {req.orgName.substring(0, 1)}
+                                                    {req.organizationName.substring(0, 1)}
                                                 </div>
                                                 <div>
-                                                    <p className="font-semibold text-white group-hover:text-accent transition-colors">{req.orgName}</p>
-                                                    <p className="text-xs text-slate-500 font-mono">{req.email}</p>
+                                                    <p className="font-semibold text-white group-hover:text-accent transition-colors">{req.organizationName}</p>
+                                                    <p className="text-xs text-slate-500 font-mono">{req.officialEmail}</p>
                                                 </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-4">
-                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border ${req.type === 'Govt' ? 'bg-purple-500/10 text-purple-300 border-purple-500/20' : 'bg-slate-700/30 text-slate-300 border-slate-600/30'}`}>
-                                                {req.type}
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold tracking-wider uppercase border ${req.organizationType === 'Govt' ? 'bg-purple-500/10 text-purple-300 border-purple-500/20' : 'bg-slate-700/30 text-slate-300 border-slate-600/30'}`}>
+                                                {req.organizationType}
                                             </span>
                                         </td>
                                         <td className="px-8 py-4 font-mono text-xs text-slate-500">
-                                            {req.submittedDate}
+                                            {new Date(req.createdAt).toLocaleDateString()}
                                         </td>
                                         <td className="px-8 py-4">
                                             <StatusBadge status={req.status} />
@@ -154,6 +174,7 @@ export default function RequestsPage() {
                             )}
                         </tbody>
                     </table>
+                    )}
                 </div>
                 <div className="px-8 py-4 border-t border-white/5 bg-white/[0.01] flex items-center justify-between text-xs text-slate-500">
                     <span>Showing {filteredRequests.length} results</span>

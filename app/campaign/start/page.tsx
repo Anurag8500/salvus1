@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
-import { Building2, Mail, User, FileText, CheckCircle, ArrowRight, Globe, ShieldAlert, Sparkles, ChevronDown } from 'lucide-react'
+import { Building2, Mail, User, FileText, CheckCircle, ArrowRight, Globe, ShieldAlert, Sparkles, ChevronDown, MapPin } from 'lucide-react'
 import Link from 'next/link'
 
 export default function StartCampaignPage() {
@@ -14,21 +14,42 @@ export default function StartCampaignPage() {
     website: '',
     phone: '',
     regNumber: '',
+    headOfficeLocation: '',
     reason: '',
   })
   const [submitted, setSubmitted] = useState(false)
   const [activeField, setActiveField] = useState<string | null>(null)
 
-  // Mock file state (in real app would be File[])
-  const [documents, setDocuments] = useState<string[]>([])
+  const [documents, setDocuments] = useState<File[]>([])
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Simulate API call with delay
-    setTimeout(() => {
-      console.log('Campaign Request:', { ...formData, documents })
+    setError(null)
+    try {
+      const fd = new FormData()
+      fd.append('organizationName', formData.organizationName)
+      fd.append('organizationType', formData.organizationType)
+      fd.append('contactPerson', formData.contactPerson)
+      fd.append('officialEmail', formData.officialEmail)
+      fd.append('website', formData.website)
+      fd.append('phone', formData.phone)
+      fd.append('regNumber', formData.regNumber)
+      fd.append('headOfficeLocation', formData.headOfficeLocation)
+      fd.append('reason', formData.reason)
+      documents.forEach(f => fd.append('documents', f))
+      const res = await fetch('/api/campaign-requests', {
+        method: 'POST',
+        body: fd
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data?.message || 'Submission failed')
+      }
       setSubmitted(true)
-    }, 800)
+    } catch (err: any) {
+      setError(err?.message || 'Something went wrong')
+    }
   }
 
   const handleChange = (
@@ -42,7 +63,7 @@ export default function StartCampaignPage() {
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files).map(file => file.name)
+      const newFiles = Array.from(e.target.files)
       setDocuments(prev => [...prev, ...newFiles])
     }
   }
@@ -150,103 +171,121 @@ export default function StartCampaignPage() {
                   <h2 className="text-2xl font-bold text-white mb-1">Organization Details</h2>
                   <p className="text-gray-400 text-sm">Tell us about the entity managing this campaign.</p>
                 </div>
+                {error && <div className="text-sm text-red-400">{error}</div>}
 
-                <motion.form
-                  variants={containerVariants}
-                  initial="hidden"
-                  animate="show"
-                  onSubmit={handleSubmit}
-                  className="space-y-5"
-                >
-                  <motion.div variants={itemVariants}>
-                    <div className={`relative group transition-all duration-300 ${activeField === 'orgName' ? 'scale-[1.02]' : ''}`}>
-                      <Building2 className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${activeField === 'orgName' ? 'text-accent' : 'text-gray-500'}`} />
-                      <input
-                        type="text"
-                        name="organizationName"
-                        value={formData.organizationName}
-                        onChange={handleChange}
-                        onFocus={() => setActiveField('orgName')}
-                        onBlur={() => setActiveField(null)}
-                        required
-                        className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
-                        placeholder="Organization Name *"
-                      />
-                    </div>
-                  </motion.div>
-
-                  <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-                    <div className="relative group">
-                      <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
-                        <Globe className={`w-5 h-5 transition-colors ${activeField === 'orgType' ? 'text-accent' : 'text-gray-500'}`} />
+                  <motion.form
+                    variants={containerVariants}
+                    initial="hidden"
+                    animate="show"
+                    onSubmit={handleSubmit}
+                    className="space-y-5"
+                  >
+                    <motion.div variants={itemVariants}>
+                      <div className={`relative group transition-all duration-300 ${activeField === 'orgName' ? 'scale-[1.02]' : ''}`}>
+                        <Building2 className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${activeField === 'orgName' ? 'text-accent' : 'text-gray-500'}`} />
+                        <input
+                          type="text"
+                          name="organizationName"
+                          value={formData.organizationName}
+                          onChange={handleChange}
+                          onFocus={() => setActiveField('orgName')}
+                          onBlur={() => setActiveField(null)}
+                          required
+                          className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
+                          placeholder="Organization Name *"
+                        />
                       </div>
+                    </motion.div>
 
-                      <button
-                        type="button"
-                        onClick={() => setActiveField(activeField === 'orgType' ? null : 'orgType')}
-                        className={`w-full pl-12 pr-4 py-4 text-left bg-white/5 border rounded-xl text-white focus:outline-none transition-all font-medium flex items-center justify-between ${activeField === 'orgType' ? 'border-accent/60 bg-white/10' : 'border-white/10'}`}
-                      >
-                        <span className={formData.organizationType ? 'text-white' : 'text-gray-500'}>
-                          {formData.organizationType || 'Type *'}
-                        </span>
-                        <motion.div
-                          animate={{ rotate: activeField === 'orgType' ? 180 : 0 }}
-                          transition={{ duration: 0.2 }}
+                    <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
+                      <div className="relative group">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none z-10">
+                          <Globe className={`w-5 h-5 transition-colors ${activeField === 'orgType' ? 'text-accent' : 'text-gray-500'}`} />
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => setActiveField(activeField === 'orgType' ? null : 'orgType')}
+                          className={`w-full pl-12 pr-4 py-4 text-left bg-white/5 border rounded-xl text-white focus:outline-none transition-all font-medium flex items-center justify-between ${activeField === 'orgType' ? 'border-accent/60 bg-white/10' : 'border-white/10'}`}
                         >
-                          <ChevronDown className="w-4 h-4 text-gray-400" />
-                        </motion.div>
-                      </button>
-
-                      <AnimatePresence>
-                        {activeField === 'orgType' && (
+                          <span className={formData.organizationType ? 'text-white' : 'text-gray-500'}>
+                            {formData.organizationType || 'Type *'}
+                          </span>
                           <motion.div
-                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                            animate={{ rotate: activeField === 'orgType' ? 180 : 0 }}
                             transition={{ duration: 0.2 }}
-                            className="absolute top-full left-0 right-0 mt-2 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50 p-1"
                           >
-                            {['NGO', 'Government', 'Private', 'Relief Body'].map((type) => (
-                              <button
-                                key={type}
-                                type="button"
-                                onClick={() => {
-                                  setFormData({ ...formData, organizationType: type })
-                                  setActiveField(null)
-                                }}
-                                className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent/10 hover:text-accent text-gray-300 transition-colors flex items-center justify-between group/item"
-                              >
-                                <span>{type}</span>
-                                {formData.organizationType === type && (
-                                  <motion.div layoutId="check">
-                                    <CheckCircle className="w-4 h-4 text-accent" />
-                                  </motion.div>
-                                )}
-                              </button>
-                            ))}
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
                           </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                    <div className={`relative group`}>
-                      <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500`} />
-                      <input
-                        type="text"
-                        name="contactPerson"
-                        value={formData.contactPerson}
-                        onChange={handleChange}
-                        required
-                        className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
-                        placeholder="Contact Person *"
-                      />
-                    </div>
-                  </motion.div>
+                        </button>
 
-                  <motion.div variants={itemVariants}>
-                    <div className={`relative group transition-all duration-300 ${activeField === 'email' ? 'scale-[1.02]' : ''}`}>
-                      <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${activeField === 'email' ? 'text-accent' : 'text-gray-500'}`} />
-                      <input
-                        type="email"
+                        <AnimatePresence>
+                          {activeField === 'orgType' && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                              transition={{ duration: 0.2 }}
+                              className="absolute top-full left-0 right-0 mt-2 bg-black/90 backdrop-blur-xl border border-white/10 rounded-xl overflow-hidden shadow-2xl z-50 p-1"
+                            >
+                              {['NGO', 'Government', 'Private', 'Relief Body'].map((type) => (
+                                <button
+                                  key={type}
+                                  type="button"
+                                  onClick={() => {
+                                    setFormData({ ...formData, organizationType: type })
+                                    setActiveField(null)
+                                  }}
+                                  className="w-full text-left px-4 py-3 rounded-lg hover:bg-accent/10 hover:text-accent text-gray-300 transition-colors flex items-center justify-between group/item"
+                                >
+                                  <span>{type}</span>
+                                  {formData.organizationType === type && (
+                                    <motion.div layoutId="check">
+                                      <CheckCircle className="w-4 h-4 text-accent" />
+                                    </motion.div>
+                                  )}
+                                </button>
+                              ))}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      <div className={`relative group`}>
+                        <User className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500`} />
+                        <input
+                          type="text"
+                          name="contactPerson"
+                          value={formData.contactPerson}
+                          onChange={handleChange}
+                          required
+                          className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
+                          placeholder="Contact Person *"
+                        />
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants}>
+                      <div className={`relative group transition-all duration-300 ${activeField === 'headOffice' ? 'scale-[1.02]' : ''}`}>
+                        <MapPin className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${activeField === 'headOffice' ? 'text-accent' : 'text-gray-500'}`} />
+                        <input
+                          type="text"
+                          name="headOfficeLocation"
+                          value={formData.headOfficeLocation}
+                          onChange={handleChange}
+                          onFocus={() => setActiveField('headOffice')}
+                          onBlur={() => setActiveField(null)}
+                          required
+                          className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
+                          placeholder="Head Office Location *"
+                        />
+                      </div>
+                    </motion.div>
+
+                    <motion.div variants={itemVariants}>
+                      <div className={`relative group transition-all duration-300 ${activeField === 'email' ? 'scale-[1.02]' : ''}`}>
+                        <Mail className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${activeField === 'email' ? 'text-accent' : 'text-gray-500'}`} />
+                        <input
+                          type="email"
                         name="officialEmail"
                         value={formData.officialEmail}
                         onChange={handleChange}
@@ -352,7 +391,7 @@ export default function StartCampaignPage() {
                         {documents.map((doc, i) => (
                           <div key={i} className="flex items-center text-xs text-accent bg-accent/10 py-1 px-3 rounded-lg border border-accent/20 w-fit">
                             <CheckCircle className="w-3 h-3 mr-2" />
-                            {doc}
+                            {doc.name}
                           </div>
                         ))}
                       </div>
