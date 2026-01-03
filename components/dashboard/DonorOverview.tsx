@@ -8,7 +8,7 @@ export default function DonorOverview() {
     {
       icon: DollarSign,
       label: 'Total Donated',
-      value: '₹8,500',
+      value: '₹0',
       color: 'text-accent',
       bgGradient: 'from-accent/20 to-accent/5',
       borderColor: 'border-accent/30',
@@ -17,7 +17,7 @@ export default function DonorOverview() {
     {
       icon: Heart,
       label: 'Campaigns Supported',
-      value: '12',
+      value: '0',
       color: 'text-accent-light',
       bgGradient: 'from-accent-light/20 to-accent-light/5',
       borderColor: 'border-accent-light/30',
@@ -26,7 +26,7 @@ export default function DonorOverview() {
     {
       icon: TrendingUp,
       label: 'Funds Utilized',
-      value: '₹6,500',
+      value: '₹0',
       color: 'text-accent',
       bgGradient: 'from-accent/20 to-accent/5',
       borderColor: 'border-accent/30',
@@ -35,7 +35,7 @@ export default function DonorOverview() {
     {
       icon: Calendar,
       label: 'Last Donation Date',
-      value: 'Dec 15, 2024',
+      value: '—',
       color: 'text-accent-light',
       bgGradient: 'from-accent-light/20 to-accent-light/5',
       borderColor: 'border-accent-light/30',

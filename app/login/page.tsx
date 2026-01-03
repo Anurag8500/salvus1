@@ -112,6 +112,7 @@ export default function LoginPage() {
         throw new Error(data.message || 'Something went wrong')
       }
 
+      try { localStorage.setItem('userName', data?.user?.name || '') } catch {}
       const role = (data?.user?.role || '').toLowerCase()
       if (role === 'admin') {
         router.push('/admin/dashboard')
@@ -183,6 +184,7 @@ export default function LoginPage() {
                     })
                     const data = await res.json()
                     if (!res.ok) throw new Error(data.message || 'Google Auth Failed')
+                    try { localStorage.setItem('userName', data?.user?.name || '') } catch {}
                     if (data.needsPasswordSetup) {
                       router.push('/set-password')
                     } else {

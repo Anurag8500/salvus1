@@ -12,6 +12,9 @@ export default function DonateSection() {
   const [showModal, setShowModal] = useState(false)
   const [donationDetails, setDonationDetails] = useState<any>(null)
   const [mounted, setMounted] = useState(false)
+  const [campaigns, setCampaigns] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   // Hydration fix & Portal target check
   useEffect(() => {
@@ -32,36 +35,32 @@ export default function DonateSection() {
     }
   }, [])
 
-  const campaigns = [
-    {
-      id: 'kerala',
-      name: 'Kerala Flood Relief 2024',
-      location: 'Kerala, India',
-      progress: 60,
-      beneficiaries: 2450,
-    },
-    {
-      id: 'cyclone',
-      name: 'Cyclone Michaung Response',
-      location: 'Tamil Nadu, India',
-      progress: 64,
-      beneficiaries: 1800,
-    },
-    {
-      id: 'uttarakhand',
-      name: 'Uttarakhand Landslide Relief',
-      location: 'Uttarakhand, India',
-      progress: 60,
-      beneficiaries: 1200,
-    },
-    {
-      id: 'assam',
-      name: 'Assam Flood Recovery',
-      location: 'Assam, India',
-      progress: 70,
-      beneficiaries: 2100,
-    },
-  ]
+  // Load active campaigns for selection
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/campaigns')
+        if (!res.ok) throw new Error('Failed to load campaigns')
+        const data = await res.json()
+        if (!mounted) return
+        const mapped = (data || []).filter((c: any) => c.status === 'Active').map((c: any) => ({
+          id: c._id,
+          name: c.name,
+          location: c.stateRegion || c.location || '',
+          progress: c.totalFundsAllocated ? Math.round(((c.fundsRaised || 0) / c.totalFundsAllocated) * 100) : 0,
+          beneficiaries: 0
+        }))
+        setCampaigns(mapped)
+      } catch (e: any) {
+        setError(e?.message || 'Unable to fetch campaigns')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
 
   const handleDonate = (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,6 +114,13 @@ export default function DonateSection() {
               <label className="block text-sm font-medium text-gray-300 mb-4">
                 Select Campaign
               </label>
+              {loading ? (
+                <div className="text-center text-gray-400">Loading campaigns...</div>
+              ) : error ? (
+                <div className="text-center text-red-400">{error}</div>
+              ) : campaigns.length === 0 ? (
+                <div className="text-center text-gray-400">No active campaigns available right now.</div>
+              ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                 {campaigns.map((campaign, index) => (
                   <motion.button
@@ -159,7 +165,7 @@ export default function DonateSection() {
                         </div>
                         <div className="flex items-center gap-1">
                           <Users className="w-3 h-3" />
-                          <span>{campaign.beneficiaries.toLocaleString()} beneficiaries</span>
+                          <span>{campaign.beneficiaries ? campaign.beneficiaries.toLocaleString() : '—'} beneficiaries</span>
                         </div>
                       </div>
 
@@ -171,6 +177,7 @@ export default function DonateSection() {
                   </motion.button>
                 ))}
               </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

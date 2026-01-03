@@ -52,10 +52,10 @@ export async function GET() {
     const categoryLimitsMap: Record<string, number> = {}
     const categories: string[] = []
     if (campaign?.categoryLimits) {
-      for (const [key, val] of (campaign.categoryLimits as Map<string, number>).entries()) {
+      ;(campaign.categoryLimits as Map<string, number>).forEach((val, key) => {
         categories.push(key)
         categoryLimitsMap[key] = val
-      }
+      })
     }
 
     const totalLimit = campaign?.beneficiaryCap || 0

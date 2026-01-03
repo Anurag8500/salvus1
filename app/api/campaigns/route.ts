@@ -29,7 +29,12 @@ export async function GET(req: Request) {
       return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
     }
 
-    const campaigns = await Campaign.find({ createdBy: user.userId }).sort({ createdAt: -1 })
+    let campaigns = []
+    if (user.role === 'Admin') {
+      campaigns = await Campaign.find({ createdBy: user.userId }).sort({ createdAt: -1 })
+    } else {
+      campaigns = await Campaign.find({ status: 'Active' }).sort({ createdAt: -1 })
+    }
 
     return NextResponse.json(campaigns, { status: 200 })
   } catch (error) {

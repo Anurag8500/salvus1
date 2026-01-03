@@ -8,8 +8,32 @@ import ActiveCampaigns from '@/components/dashboard/ActiveCampaigns'
 import DonateSection from '@/components/dashboard/DonateSection'
 import DonationHistory from '@/components/dashboard/DonationHistory'
 import ImpactBreakdown from '@/components/dashboard/ImpactBreakdown'
+import { useEffect, useState } from 'react'
 
 export default function DonorDashboard() {
+  const [userName, setUserName] = useState('')
+  const [initials, setInitials] = useState('..')
+
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/auth/login')
+        if (!res.ok) return
+        const data = await res.json()
+        if (!mounted) return
+        const name = data?.user?.name || ''
+        setUserName(name)
+        if (name) {
+          const parts = name.trim().split(/\s+/)
+          const init = (parts[0]?.[0] || '') + (parts[1]?.[0] || '')
+          setInitials(init.toUpperCase() || (name[0] || '').toUpperCase())
+        }
+      } catch {}
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
   return (
     <div className="min-h-screen relative overflow-hidden bg-black">
       {/* Animated Background */}
@@ -51,9 +75,9 @@ export default function DonorDashboard() {
             {/* Profile */}
             <button className="flex items-center gap-2 p-1.5 rounded-full hover:bg-white/5 transition-all group">
               <div className="w-8 h-8 rounded-full bg-gradient-to-br from-accent to-blue-500 flex items-center justify-center text-dark-darker font-bold text-sm shadow-lg shadow-accent/20">
-                JD
+                {initials}
               </div>
-              <span className="text-sm font-medium text-gray-300 group-hover:text-white hidden sm:block">John Doe</span>
+              <span className="text-sm font-medium text-gray-300 group-hover:text-white hidden sm:block">{userName || 'Donor'}</span>
             </button>
 
             {/* Settings Dropdown Placeholder */}

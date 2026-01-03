@@ -3,62 +3,42 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { MapPin, AlertCircle, Clock, TrendingUp, Eye, Heart, Utensils, Pill, Car, Home, BadgeCheck } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function ActiveCampaigns() {
-  const campaigns = [
-    {
-      id: 'kerala',
-      name: 'Kerala Flood Relief 2024',
-      location: 'Kerala, India',
-      description: 'Emergency aid for flood-affected families in coastal regions',
-      urgency: 'High',
-      urgencyColor: 'text-red-400',
-      urgencyBg: 'bg-red-400/10',
-      urgencyBorder: 'border-red-400/30',
-      fundsAllocated: 45000,
-      target: 75000,
-      categories: ['Food', 'Medicine', 'Transport', 'Shelter'],
-    },
-    {
-      id: 'cyclone',
-      name: 'Cyclone Michaung Response',
-      location: 'Tamil Nadu, India',
-      description: 'Essential supplies for communities impacted by severe cyclonic storm',
-      urgency: 'High',
-      urgencyColor: 'text-red-400',
-      urgencyBg: 'bg-red-400/10',
-      urgencyBorder: 'border-red-400/30',
-      fundsAllocated: 32000,
-      target: 50000,
-      categories: ['Food', 'Medicine', 'Shelter'],
-    },
-    {
-      id: 'uttarakhand',
-      name: 'Uttarakhand Landslide Relief',
-      location: 'Uttarakhand, India',
-      description: 'Supporting families displaced by recent landslides in hilly regions',
-      urgency: 'Medium',
-      urgencyColor: 'text-yellow-400',
-      urgencyBg: 'bg-yellow-400/10',
-      urgencyBorder: 'border-yellow-400/30',
-      fundsAllocated: 18000,
-      target: 30000,
-      categories: ['Food', 'Transport', 'Shelter'],
-    },
-    {
-      id: 'assam',
-      name: 'Assam Flood Recovery',
-      location: 'Assam, India',
-      description: 'Long-term recovery assistance for flood-affected communities',
-      urgency: 'Ongoing',
-      urgencyColor: 'text-blue-400',
-      urgencyBg: 'bg-blue-400/10',
-      urgencyBorder: 'border-blue-400/30',
-      fundsAllocated: 28000,
-      target: 40000,
-      categories: ['Food', 'Medicine', 'Transport'],
-    },
-  ]
+  const [campaigns, setCampaigns] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+
+  // Fetch Active Campaigns from backend
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/campaigns')
+        if (!res.ok) throw new Error('Failed to load campaigns')
+        const data = await res.json()
+        if (!mounted) return
+        const mapped = (data || []).filter((c: any) => c.status === 'Active').map((c: any) => ({
+          id: c._id,
+          name: c.name,
+          location: c.stateRegion || c.location || '',
+          description: c.description || '',
+          urgency: c.urgency || 'High',
+          fundsAllocated: c.fundsRaised || 0,
+          target: c.totalFundsAllocated || 0,
+          categories: c.categories || []
+        }))
+        setCampaigns(mapped)
+      } catch (e: any) {
+        setError(e?.message || 'Unable to fetch campaigns')
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
@@ -104,6 +84,13 @@ export default function ActiveCampaigns() {
           <p className="text-gray-400 text-sm">Compare campaigns and choose where to donate</p>
         </div>
 
+        {loading ? (
+          <div className="text-center text-gray-400">Loading campaigns...</div>
+        ) : error ? (
+          <div className="text-center text-red-400">{error}</div>
+        ) : campaigns.length === 0 ? (
+          <div className="text-center text-gray-400">No active campaigns available right now.</div>
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {campaigns.map((campaign, index) => {
             const progress = (campaign.fundsAllocated / campaign.target) * 100
@@ -147,7 +134,7 @@ export default function ActiveCampaigns() {
                   {/* Funding Progress */}
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs text-gray-400">Funds allocated vs target</span>
+                      <span className="text-xs text-gray-400">Funding Progress</span>
                       <span className="text-sm font-semibold text-accent">
                         {progress.toFixed(0)}%
                       </span>
@@ -175,7 +162,7 @@ export default function ActiveCampaigns() {
                   {/* Categories */}
                   <div className="mb-4">
                     <div className="flex flex-wrap gap-2">
-                      {campaign.categories.map((category, catIndex) => {
+                      {campaign.categories.map((category: string, catIndex: number) => {
                         const CategoryIcon = getCategoryIcon(category)
                         return (
                           <div
@@ -202,15 +189,7 @@ export default function ActiveCampaigns() {
                     </motion.button>
                     {/* View Public Audit */}
                     <Link
-                      href={`/transparency?campaign=${(() => {
-                        const map: Record<string, string> = {
-                          kerala: 'kerala-2024',
-                          cyclone: 'cyclone-michaung',
-                          assam: 'assam-flood-2025',
-                          uttarakhand: 'assam-flood-2025',
-                        }
-                        return map[campaign.id] || 'assam-flood-2025'
-                      })()}`}
+                      href={`/transparency?campaign=${encodeURIComponent(campaign.id)}`}
                       className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-dark-lighter/30 hover:bg-dark-lighter/40 border border-dark-lighter/50 hover:border-accent/50 text-gray-300 hover:text-white rounded-lg transition-all duration-300 text-sm font-semibold"
                     >
                       <BadgeCheck className="w-4 h-4" />
@@ -221,7 +200,7 @@ export default function ActiveCampaigns() {
                       whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         // Store campaign ID in sessionStorage for pre-selection
-                        sessionStorage.setItem('selectedCampaignId', campaign.id)
+                        sessionStorage.setItem('selectedCampaignId', campaign.id as string)
                         sessionStorage.setItem('selectedCampaignName', campaign.name)
                         
                         // Smooth scroll to donate section
@@ -241,8 +220,8 @@ export default function ActiveCampaigns() {
             )
           })}
         </div>
+        )}
       </div>
     </motion.div>
   )
 }
-
