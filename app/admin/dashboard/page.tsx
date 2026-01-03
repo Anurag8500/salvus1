@@ -24,9 +24,26 @@ export default function AdminDashboard() {
   const [recentBeneficiaries, setRecentBeneficiaries] = useState<any[]>([])
   const [recentVendors, setRecentVendors] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [orgRequired, setOrgRequired] = useState(false)
+  const [orgForm, setOrgForm] = useState({
+    name: '',
+    type: '',
+    officialEmail: '',
+    contactPersonName: '',
+    contactPhone: '',
+    address: '',
+    website: '',
+  })
 
   const fetchStats = async () => {
     try {
+      const orgRes = await fetch('/api/organisation')
+      if (orgRes.status === 404) {
+        setOrgRequired(true)
+        setLoading(false)
+        return
+      }
+      if (!orgRes.ok) throw new Error('Failed to fetch organisation')
       const res = await fetch('/api/admin/stats')
       if (!res.ok) throw new Error('Failed to fetch stats')
       const data = await res.json()
@@ -117,10 +134,122 @@ export default function AdminDashboard() {
     fetchStats()
   }, [])
 
+  const submitOrg = async () => {
+    if (!orgForm.name || !orgForm.type || !orgForm.officialEmail || !orgForm.contactPersonName || !orgForm.contactPhone || !orgForm.address) {
+      alert('Please fill all mandatory fields')
+      return
+    }
+    try {
+      const res = await fetch('/api/organisation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orgForm),
+      })
+      if (!res.ok) throw new Error('Failed to save organisation')
+      setOrgRequired(false)
+      setLoading(true)
+      fetchStats()
+    } catch (e) {
+      alert('Error saving organisation details')
+    }
+  }
+
   // --- RENDER ---
 
   return (
     <div className="min-h-screen relative overflow-hidden bg-black text-gray-200">
+      {orgRequired && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6 bg-black/80 backdrop-blur-md">
+          <div className="w-full max-w-xl glass-card rounded-3xl overflow-hidden flex flex-col max-h-[85vh] border border-white/10 shadow-2xl">
+            <div className="px-8 py-6 border-b border-white/5 bg-gradient-to-r from-accent/20 to-transparent">
+              <div className="flex items-center gap-3">
+                <Building2 className="w-6 h-6 text-accent" />
+                <h2 className="text-2xl font-black text-white tracking-tight">Organisation Profile</h2>
+              </div>
+              <p className="text-gray-400 text-sm mt-1">One-time setup required to access admin dashboard.</p>
+            </div>
+            <div className="flex-1 overflow-y-auto p-6 md:p-8 custom-scrollbar space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Organisation Name</label>
+                  <input
+                    value={orgForm.name}
+                    onChange={(e) => setOrgForm({ ...orgForm, name: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent/40 focus:border-accent/40"
+                    placeholder="e.g. Salvus Relief Foundation"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Organisation Type</label>
+                  <select
+                    value={orgForm.type}
+                    onChange={(e) => setOrgForm({ ...orgForm, type: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent/40 focus:border-accent/40"
+                  >
+                    <option value="" disabled>Select</option>
+                    <option value="NGO" className="bg-dark-darker">NGO</option>
+                    <option value="Govt" className="bg-dark-darker">Govt</option>
+                    <option value="Trust" className="bg-dark-darker">Trust</option>
+                  </select>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Official Email</label>
+                  <input
+                    type="email"
+                    value={orgForm.officialEmail}
+                    onChange={(e) => setOrgForm({ ...orgForm, officialEmail: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent/40 focus:border-accent/40"
+                    placeholder="org@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Website</label>
+                  <input
+                    value={orgForm.website}
+                    onChange={(e) => setOrgForm({ ...orgForm, website: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent/40 focus:border-accent/40"
+                    placeholder="https://example.org"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Contact Person Name</label>
+                  <input
+                    value={orgForm.contactPersonName}
+                    onChange={(e) => setOrgForm({ ...orgForm, contactPersonName: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent/40 focus:border-accent/40"
+                    placeholder="Full name"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Contact Phone</label>
+                  <input
+                    value={orgForm.contactPhone}
+                    onChange={(e) => setOrgForm({ ...orgForm, contactPhone: e.target.value })}
+                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent/40 focus:border-accent/40"
+                    placeholder="+91XXXXXXXXXX"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2 block">Address / Location</label>
+                <input
+                  value={orgForm.address}
+                  onChange={(e) => setOrgForm({ ...orgForm, address: e.target.value })}
+                  className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-accent/40 focus:border-accent/40"
+                  placeholder="Address"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-white/5 bg-black/20 backdrop-blur-sm flex justify-end">
+              <button onClick={submitOrg} className="px-6 py-3 rounded-xl bg-accent hover:bg-accent-dark text-dark-darker font-bold transition-all shadow-lg shadow-accent/20">Save & Continue</button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Animated Background */}
       <div className="absolute inset-0 w-full h-full z-0 pointer-events-none">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>

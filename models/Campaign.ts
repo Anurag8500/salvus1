@@ -18,9 +18,20 @@ const CampaignSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  stateRegion: {
+    type: String,
+    required: true,
+  },
+  district: {
+    type: String,
+  },
   managedBy: {
-    type: String, // NGO Name or Organization
+    type: String,
     default: 'Salvus Relief',
+  },
+  disasterType: {
+    type: String,
+    required: true,
   },
   status: {
     type: String,
@@ -31,16 +42,35 @@ const CampaignSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  beneficiaryCap: {
+    type: Number,
+    required: true,
+  },
+  startDate: {
+    type: Date,
+    required: true,
+  },
+  endDate: {
+    type: Date,
+    required: true,
+  },
   fundsRaised: {
     type: Number,
     default: 0,
   },
   categories: {
     type: [String],
-    default: ['Food', 'Medicine', 'Shelter', 'Transport'],
+    validate: [(v: string[]) => Array.isArray(v) && v.length > 0, 'Allowed categories are required'],
+    default: undefined,
+  },
+  categoryLimits: {
+    type: Map,
+    of: Number,
+    required: true,
   },
   description: {
     type: String,
+    required: true,
   },
   urgency: {
     type: String,
@@ -61,5 +91,19 @@ CampaignSchema.pre('save', function() {
       .replace(/(^-|-$)+/g, '');
   }
 });
+
+CampaignSchema.path('categoryLimits').validate(function (this: any, v: Map<string, number>) {
+  if (!this.categories || !Array.isArray(this.categories) || this.categories.length === 0) return false
+  for (const cat of this.categories) {
+    const val = v?.get(cat)
+    if (typeof val !== 'number' || !(val > 0)) return false
+  }
+  const sum = Array.from((v || new Map()).values()).reduce((a, b) => a + b, 0)
+  return sum === this.beneficiaryCap
+}, 'Category limits must be provided for all allowed categories')
+
+CampaignSchema.path('beneficiaryCap').validate(function (this: any, v: number) {
+  return typeof v === 'number' && v < this.totalFundsAllocated
+}, 'Per-beneficiary cap must be less than total campaign budget')
 
 export default mongoose.models.Campaign || mongoose.model('Campaign', CampaignSchema)

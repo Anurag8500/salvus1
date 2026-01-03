@@ -22,6 +22,7 @@ export default function CampaignDetails() {
     const [beneficiaries, setBeneficiaries] = useState<any[]>([])
     const [vendors, setVendors] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
+    const [orgName, setOrgName] = useState<string>('')
 
     const [activeTab, setActiveTab] = useState<'beneficiaries' | 'vendors' | 'settings'>('beneficiaries')
     const [showOnboardModal, setShowOnboardModal] = useState(false)
@@ -69,11 +70,24 @@ export default function CampaignDetails() {
         }
     }
 
+    const fetchOrg = async () => {
+        try {
+            const res = await fetch('/api/organisation')
+            if (!res.ok) return
+            const data = await res.json()
+            if (data?.name) setOrgName(data.name)
+        } catch {}
+    }
+
     useEffect(() => {
         if (campaignId) {
             fetchCampaignData()
         }
     }, [campaignId])
+
+    useEffect(() => {
+        fetchOrg()
+    }, [])
 
     if (loading) {
         return <div className="min-h-screen bg-black text-white flex items-center justify-center">Loading...</div>
@@ -127,7 +141,7 @@ export default function CampaignDetails() {
                                 {campaign.name}
                             </h1>
                             <div className="flex items-center gap-4 text-gray-400 text-sm">
-                                <span className="flex items-center gap-1"><Shield className="w-4 h-4" />Managed by Helping Hands NGO</span>
+                                <span className="flex items-center gap-1"><Shield className="w-4 h-4" />Managed by {orgName || 'Organisation'}</span>
                                 <span className="w-1 h-1 rounded-full bg-gray-600"></span>
                                 <span>{campaign.location}</span>
                             </div>

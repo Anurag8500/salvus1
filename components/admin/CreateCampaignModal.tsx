@@ -10,8 +10,8 @@ interface CreateCampaignModalProps {
     onSuccess?: () => void
 }
 
-type Category = 'Food' | 'Medicine' | 'Transport' | 'Shelter' | 'Hygiene' | 'Education'
-const CATEGORIES: Category[] = ['Food', 'Medicine', 'Transport', 'Shelter', 'Hygiene', 'Education']
+type Category = 'Food' | 'Medicine' | 'Transport' | 'Shelter' | 'Education'
+const CATEGORIES: Category[] = ['Food', 'Medicine', 'Transport', 'Shelter', 'Education']
 
 const DISASTER_TYPES = ['Flood', 'Cyclone', 'Earthquake', 'Fire', 'Drought', 'Other']
 
@@ -61,6 +61,44 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
 
     const handleSubmit = async () => {
         if (!formData.confirmed) return
+        if (!formData.name || !formData.disasterType || !formData.locationState || !formData.description) {
+            alert('Please fill all mandatory identity fields')
+            return
+        }
+        if (!formData.budgetCap || Number(formData.budgetCap) <= 0 || !formData.beneficiaryCap || Number(formData.beneficiaryCap) <= 0) {
+            alert('Please set valid budget and per-beneficiary caps')
+            return
+        }
+        if (Number(formData.beneficiaryCap) >= Number(formData.budgetCap)) {
+            alert('Per-beneficiary cap must be less than total campaign budget.')
+            return
+        }
+        if (!formData.startDate || !formData.endDate) {
+            alert('Please set campaign start and end dates')
+            return
+        }
+        if (new Date(formData.endDate).getTime() < new Date(formData.startDate).getTime()) {
+            alert('End date must be after start date')
+            return
+        }
+        if (!formData.categories.length) {
+            alert('Please select at least one allowed category')
+            return
+        }
+        const limits: Record<string, number> = {}
+        for (const cat of formData.categories) {
+            const val = Number(formData.categoryLimits[cat])
+            if (!val || val <= 0) {
+                alert('Please set valid category limits for all selected categories')
+                return
+            }
+            limits[cat] = val
+        }
+        const limitsSum = formData.categories.reduce((sum, cat) => sum + Number(formData.categoryLimits[cat] || 0), 0)
+        if (limitsSum !== Number(formData.beneficiaryCap)) {
+            alert('Category limits must add up exactly to the per-beneficiary cap.')
+            return
+        }
 
         setIsSubmitting(true)
         try {
@@ -74,12 +112,18 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
                 body: JSON.stringify({
                     name: formData.name,
                     description: formData.description,
+                    disasterType: formData.disasterType,
                     location: location,
+                    stateRegion: formData.locationState,
+                    district: formData.locationDistrict,
                     categories: formData.categories,
+                    categoryLimits: limits,
                     urgency: 'High', // Defaulting for now
                     status: 'Active',
                     totalFundsAllocated: Number(formData.budgetCap) || 0,
-                    // Add other fields as needed
+                    beneficiaryCap: Number(formData.beneficiaryCap) || 0,
+                    startDate: formData.startDate,
+                    endDate: formData.endDate,
                 }),
             })
 
@@ -235,14 +279,16 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
-                                <div className="col-span-2 text-sm font-bold text-gray-400">Campaign Duration (Recommended)</div>
+                                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
+                                <div className="col-span-2 text-sm font-bold text-gray-400">Campaign Duration <span className="text-red-500">*</span></div>
                                 <div>
                                     <label className="text-xs text-gray-500 mb-1 block">Start Date</label>
                                     <div className="relative">
                                         <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
                                         <input
                                             type="date"
+                                            value={formData.startDate}
+                                            onChange={(e) => handleInputChange('startDate', e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-accent/50"
                                         />
                                     </div>
@@ -253,6 +299,8 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
                                         <Calendar className="absolute left-3 top-2.5 w-4 h-4 text-gray-500" />
                                         <input
                                             type="date"
+                                            value={formData.endDate}
+                                            onChange={(e) => handleInputChange('endDate', e.target.value)}
                                             className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-accent/50"
                                         />
                                     </div>
@@ -292,7 +340,7 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
 
                             {formData.categories.length > 0 && (
                                 <div className="mt-8 space-y-4">
-                                    <h4 className="font-bold text-gray-300 text-sm uppercase tracking-wider">Category Limits (Optional)</h4>
+                                    <h4 className="font-bold text-gray-300 text-sm uppercase tracking-wider">Category Limits (per beneficiary) <span className="text-red-500">*</span></h4>
                                     <div className="space-y-3">
                                         {formData.categories.map(cat => (
                                             <div key={cat} className="flex items-center gap-4">
@@ -301,7 +349,8 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
                                                     <span className="absolute left-3 top-2 text-gray-500 text-sm">₹</span>
                                                     <input
                                                         type="number"
-                                                        placeholder="No Limit"
+                                                        min={1}
+                                                        value={formData.categoryLimits[cat] || ''}
                                                         className="w-full bg-white/5 border border-white/10 rounded-lg pl-8 pr-4 py-2 text-sm text-white focus:outline-none focus:border-accent/50"
                                                         onChange={(e) => handleCategoryLimitChange(cat, e.target.value)}
                                                     />
