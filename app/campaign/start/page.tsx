@@ -9,18 +9,24 @@ export default function StartCampaignPage() {
   const [formData, setFormData] = useState({
     organizationName: '',
     organizationType: '',
-    officialEmail: '',
     contactPerson: '',
+    officialEmail: '',
+    website: '',
+    phone: '',
+    regNumber: '',
     reason: '',
   })
   const [submitted, setSubmitted] = useState(false)
   const [activeField, setActiveField] = useState<string | null>(null)
 
+  // Mock file state (in real app would be File[])
+  const [documents, setDocuments] = useState<string[]>([])
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     // Simulate API call with delay
     setTimeout(() => {
-      console.log('Campaign Request:', formData)
+      console.log('Campaign Request:', { ...formData, documents })
       setSubmitted(true)
     }, 800)
   }
@@ -32,6 +38,13 @@ export default function StartCampaignPage() {
       ...formData,
       [e.target.name]: e.target.value,
     })
+  }
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newFiles = Array.from(e.target.files).map(file => file.name)
+      setDocuments(prev => [...prev, ...newFiles])
+    }
   }
 
   const containerVariants = {
@@ -50,7 +63,7 @@ export default function StartCampaignPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-black text-gray-200 relative overflow-hidden p-6">
+    <div className="min-h-screen flex items-center justify-center bg-black text-gray-200 relative overflow-hidden p-6 py-12">
       {/* Immersive Background */}
       <div className="absolute inset-0 w-full h-full pointer-events-none">
         <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20"></div>
@@ -67,14 +80,14 @@ export default function StartCampaignPage() {
         />
       </div>
 
-      <div className="w-full max-w-6xl z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="w-full max-w-6xl z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-start mt-10">
 
         {/* Left Side: The Pitch */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.8, ease: "easeOut" }}
-          className="hidden lg:block space-y-8"
+          className="hidden lg:block space-y-8 sticky top-24"
         >
           <div>
             <motion.div
@@ -86,16 +99,16 @@ export default function StartCampaignPage() {
               <Sparkles className="w-4 h-4" />
               Become a Savior
             </motion.div>
-            <h1 className="text-6xl font-black text-white tracking-tighter leading-tight mb-6">
+            <h1 className="text-7xl font-black text-white tracking-tighter leading-tight mb-8">
               Launch Your <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-yellow-200">Relief Mission.</span>
             </h1>
-            <p className="text-xl text-gray-400 max-w-md leading-relaxed">
+            <p className="text-2xl text-gray-400 max-w-lg leading-relaxed">
               Join the autonomous network. Create transparent, efficient relief campaigns powered by smart contracts and real-time auditing.
             </p>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {[
               { title: "Instant Deployment", desc: "Set up funds and beneficiaries in minutes.", icon: Sparkles },
               { title: "Transparency First", desc: "Every transaction is tracked and auditable.", icon: ShieldAlert },
@@ -106,14 +119,14 @@ export default function StartCampaignPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + (i * 0.1) }}
                 key={i}
-                className="flex items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
+                className="flex items-center gap-6 p-6 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors"
               >
-                <div className="w-12 h-12 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
-                  <item.icon className="w-6 h-6 text-accent" />
+                <div className="w-16 h-16 rounded-2xl bg-accent/20 flex items-center justify-center shrink-0">
+                  <item.icon className="w-8 h-8 text-accent" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white">{item.title}</h3>
-                  <p className="text-sm text-gray-400">{item.desc}</p>
+                  <h3 className="text-xl font-bold text-white mb-1">{item.title}</h3>
+                  <p className="text-base text-gray-400 leading-relaxed">{item.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -157,7 +170,7 @@ export default function StartCampaignPage() {
                         onBlur={() => setActiveField(null)}
                         required
                         className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
-                        placeholder="Organization Name"
+                        placeholder="Organization Name *"
                       />
                     </div>
                   </motion.div>
@@ -174,7 +187,7 @@ export default function StartCampaignPage() {
                         className={`w-full pl-12 pr-4 py-4 text-left bg-white/5 border rounded-xl text-white focus:outline-none transition-all font-medium flex items-center justify-between ${activeField === 'orgType' ? 'border-accent/60 bg-white/10' : 'border-white/10'}`}
                       >
                         <span className={formData.organizationType ? 'text-white' : 'text-gray-500'}>
-                          {formData.organizationType || 'Type'}
+                          {formData.organizationType || 'Type *'}
                         </span>
                         <motion.div
                           animate={{ rotate: activeField === 'orgType' ? 180 : 0 }}
@@ -224,7 +237,7 @@ export default function StartCampaignPage() {
                         onChange={handleChange}
                         required
                         className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
-                        placeholder="Contact Person"
+                        placeholder="Contact Person *"
                       />
                     </div>
                   </motion.div>
@@ -241,7 +254,61 @@ export default function StartCampaignPage() {
                         onBlur={() => setActiveField(null)}
                         required
                         className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
-                        placeholder="Official Email"
+                        placeholder="Official Email *"
+                      />
+                    </div>
+                  </motion.div>
+
+                  {/* Phone & Website */}
+                  <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className={`relative group transition-all duration-300 ${activeField === 'phone' ? 'scale-[1.02]' : ''}`}>
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                        {/* Phone Icon SVG */}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-colors ${activeField === 'phone' ? 'text-accent' : 'text-gray-500'}`}>
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="tel"
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        onFocus={() => setActiveField('phone')}
+                        onBlur={() => setActiveField(null)}
+                        required
+                        className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
+                        placeholder="Phone No *"
+                      />
+                    </div>
+
+                    <div className={`relative group transition-all duration-300 ${activeField === 'website' ? 'scale-[1.02]' : ''}`}>
+                      <Globe className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${activeField === 'website' ? 'text-accent' : 'text-gray-500'}`} />
+                      <input
+                        type="url"
+                        name="website"
+                        value={formData.website}
+                        onChange={handleChange}
+                        onFocus={() => setActiveField('website')}
+                        onBlur={() => setActiveField(null)}
+                        className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
+                        placeholder="Website (Optional)"
+                      />
+                    </div>
+                  </motion.div>
+
+                  {/* Reg No */}
+                  <motion.div variants={itemVariants}>
+                    <div className={`relative group transition-all duration-300 ${activeField === 'regNo' ? 'scale-[1.02]' : ''}`}>
+                      <FileText className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${activeField === 'regNo' ? 'text-accent' : 'text-gray-500'}`} />
+                      <input
+                        type="text"
+                        name="regNumber"
+                        value={formData.regNumber}
+                        onChange={handleChange}
+                        onFocus={() => setActiveField('regNo')}
+                        onBlur={() => setActiveField(null)}
+                        className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all font-medium"
+                        placeholder="Registration Number (Optional)"
                       />
                     </div>
                   </motion.div>
@@ -258,9 +325,38 @@ export default function StartCampaignPage() {
                         required
                         rows={3}
                         className="w-full pl-12 pr-4 py-4 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-accent/60 focus:bg-white/10 transition-all resize-none font-medium"
-                        placeholder="Mission Objective / Reason for Campaign..."
+                        placeholder="Mission Objective / Reason for Campaign *"
                       />
                     </div>
+                  </motion.div>
+
+                  {/* File Upload */}
+                  <motion.div variants={itemVariants}>
+                    <label className="block w-full cursor-pointer group">
+                      <div className="w-full border-2 border-dashed border-white/10 rounded-xl p-6 flex flex-col items-center justify-center bg-white/5 hover:bg-white/10 transition-colors hover:border-accent/40">
+                        <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                          {/* Upload Icon */}
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="17 8 12 3 7 8" />
+                            <line x1="12" y1="3" x2="12" y2="15" />
+                          </svg>
+                        </div>
+                        <p className="text-sm font-medium text-gray-300">Upload Documents</p>
+                        <p className="text-xs text-gray-500 mt-1">Registration Certs, Tax Docs (PDF, JPG)</p>
+                      </div>
+                      <input type="file" multiple className="hidden" onChange={handleFileChange} accept=".pdf,.jpg,.jpeg,.png" />
+                    </label>
+                    {documents.length > 0 && (
+                      <div className="mt-3 space-y-2">
+                        {documents.map((doc, i) => (
+                          <div key={i} className="flex items-center text-xs text-accent bg-accent/10 py-1 px-3 rounded-lg border border-accent/20 w-fit">
+                            <CheckCircle className="w-3 h-3 mr-2" />
+                            {doc}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
 
                   <motion.button
@@ -273,6 +369,10 @@ export default function StartCampaignPage() {
                     <span>Initialize Campaign</span>
                     <ArrowRight className="w-5 h-5" />
                   </motion.button>
+
+                  <p className="text-center text-xs text-gray-500 mt-4">
+                    * Required Fields. All submissions are verified by Salvus HQ.
+                  </p>
 
                 </motion.form>
               </div>
