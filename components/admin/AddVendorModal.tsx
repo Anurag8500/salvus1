@@ -13,14 +13,14 @@ interface AddVendorModalProps {
     onSuccess?: () => void
 }
 
-const VENDOR_TYPES = ['Medical Store', 'Grocery / Ration Shop', 'Transport Provider', 'Shelter Provider', 'Other']
+const VENDOR_TYPES = ['Medical Store', 'Grocery / Ration Shop', 'Transport Provider', 'Shelter Provider', 'Educational Supplies Store']
 const PROOF_TYPES = ['Shop License', 'GST Registration', 'Local Authority Letter', 'NGO Recommendation']
 
 export default function AddVendorModal({
     isOpen,
     onClose,
     campaignLocation = 'Kerala',
-    campaignCategories = ['Food', 'Medicine', 'Transport', 'Shelter', 'Hygiene'],
+    campaignCategories = ['Food', 'Medicine', 'Transport', 'Shelter', 'Education'],
     campaignId,
     onSuccess
 }: AddVendorModalProps) {

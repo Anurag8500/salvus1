@@ -10,8 +10,8 @@ interface CreateCampaignModalProps {
     onSuccess?: () => void
 }
 
-type Category = 'Food' | 'Medicine' | 'Transport' | 'Shelter' | 'Education'
-const CATEGORIES: Category[] = ['Food', 'Medicine', 'Transport', 'Shelter', 'Education']
+type Category = 'Food' | 'Medicine' | 'Transport' | 'Shelter'
+const CATEGORIES: Category[] = ['Food', 'Medicine', 'Transport', 'Shelter']
 
 const DISASTER_TYPES = ['Flood', 'Cyclone', 'Earthquake', 'Fire', 'Drought', 'Other']
 
@@ -211,7 +211,7 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-sm font-bold text-gray-300 mb-2 block">State / Region <span className="text-red-500">*</span></label>
+                                        <label className="text-sm font-bold text-gray-300 mb-2 block">Affected Area <span className="text-red-500">*</span></label>
                                         <div className="relative">
                                             <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-500" />
                                             <input
@@ -219,7 +219,7 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
                                                 onChange={(e) => handleInputChange('locationState', e.target.value)}
                                                 type="text"
                                                 className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:border-accent/50"
-                                                placeholder="Region"
+                                                placeholder="Affected Area"
                                             />
                                         </div>
                                     </div>
