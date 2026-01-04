@@ -20,7 +20,7 @@ export default function AddVendorModal({
     isOpen,
     onClose,
     campaignLocation = 'Kerala',
-    campaignCategories = ['Food', 'Medicine', 'Transport', 'Shelter', 'Education'],
+    campaignCategories = [],
     campaignId,
     onSuccess
 }: AddVendorModalProps) {

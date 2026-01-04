@@ -29,6 +29,7 @@ export default function BeneficiaryDashboard() {
   const [approverName, setApproverName] = useState<string>('...')
   const [approvalDate, setApprovalDate] = useState<string>('...')
   const [totalLimit, setTotalLimit] = useState<number>(0)
+  const [totalSpent, setTotalSpent] = useState<number>(0)
   const [beneficiaryName, setBeneficiaryName] = useState<string>('')
   const [beneficiaryInitials, setBeneficiaryInitials] = useState<string>('..')
 
@@ -61,6 +62,7 @@ export default function BeneficiaryDashboard() {
         setBalances(data.balances || [])
         setHistory(data.history || [])
         setTotalLimit(data.totalLimit || 0)
+        setTotalSpent(data.totalSpent || 0)
         if ((data.categories || []).length > 0) {
           setCategory(data.categories[0])
         }
@@ -188,12 +190,35 @@ export default function BeneficiaryDashboard() {
             </div>
 
             <div className="md:text-right">
-              <div className="text-sm text-gray-400 mb-1">Total Limit Available</div>
-              <div className="text-3xl font-black text-white">₹{totalLimit.toLocaleString()}</div>
+              <div className="text-xs text-accent mb-1 uppercase tracking-wider font-bold">Available Limit</div>
+              <div className="text-3xl font-black text-white">
+                <span className="text-accent">₹{(totalLimit - totalSpent).toLocaleString()}</span>
+                <span className="text-gray-500 text-lg font-medium ml-1">/ ₹{totalLimit.toLocaleString()}</span>
+              </div>
             </div>
           </div>
         </motion.div>
 
+
+        {/* Allowed Categories */}
+        <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="mb-8"
+        >
+            <h3 className="text-lg font-bold text-white mb-4">Allowed Categories</h3>
+            <div className="flex flex-wrap gap-3">
+                {categories.length > 0 ? categories.map(cat => (
+                    <div key={cat} className="flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-gray-300">
+                        {(() => { const Icon = categoryIconMap[cat] || BadgeCheck; return <Icon className="w-4 h-4 text-accent" /> })()}
+                        <span>{cat}</span>
+                    </div>
+                )) : (
+                    <div className="text-gray-500">No specific categories listed.</div>
+                )}
+            </div>
+        </motion.div>
 
         {/* Balances Grid */}
         <motion.div
@@ -273,7 +298,7 @@ export default function BeneficiaryDashboard() {
                   >
                     <div className="flex items-center gap-3">
                       {(() => {
-                        const Icon = categoryIconMap[category]
+                        const Icon = categoryIconMap[category] || BadgeCheck
                         return <Icon className="w-5 h-5 text-accent" />
                       })()}
                       <span className="font-semibold">{category}</span>
@@ -291,7 +316,7 @@ export default function BeneficiaryDashboard() {
                           className="w-full flex items-center gap-3 p-4 hover:bg-white/5 text-left transition-colors"
                         >
                           <div className="text-accent">
-                            {(() => { const I = categoryIconMap[c]; return <I className="w-4 h-4" /> })()}
+                            {(() => { const I = categoryIconMap[c] || BadgeCheck; return <I className="w-4 h-4" /> })()}
                           </div>
                           <span className="text-gray-200 font-medium">{c}</span>
                         </button>

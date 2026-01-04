@@ -66,7 +66,7 @@ const CampaignSchema = new mongoose.Schema({
   categoryLimits: {
     type: Map,
     of: Number,
-    required: true,
+    required: false,
   },
   description: {
     type: String,
@@ -92,15 +92,7 @@ CampaignSchema.pre('save', function() {
   }
 });
 
-CampaignSchema.path('categoryLimits').validate(function (this: any, v: Map<string, number>) {
-  if (!this.categories || !Array.isArray(this.categories) || this.categories.length === 0) return false
-  for (const cat of this.categories) {
-    const val = v?.get(cat)
-    if (typeof val !== 'number' || !(val > 0)) return false
-  }
-  const sum = Array.from((v || new Map()).values()).reduce((a, b) => a + b, 0)
-  return sum === this.beneficiaryCap
-}, 'Category limits must be provided for all allowed categories')
+// Category limits are optional and no longer enforced
 
 CampaignSchema.path('beneficiaryCap').validate(function (this: any, v: number) {
   return typeof v === 'number' && v < this.totalFundsAllocated

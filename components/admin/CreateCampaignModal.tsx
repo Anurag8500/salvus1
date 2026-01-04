@@ -29,7 +29,6 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
         startDate: '',
         endDate: '',
         categories: [] as Category[],
-        categoryLimits: {} as Record<Category, string>,
         confirmed: false
     })
 
@@ -50,13 +49,6 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }))
-    }
-
-    const handleCategoryLimitChange = (cat: Category, val: string) => {
-        setFormData(prev => ({
-            ...prev,
-            categoryLimits: { ...prev.categoryLimits, [cat]: val }
-        }))
     }
 
     const handleSubmit = async () => {
@@ -85,20 +77,6 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
             alert('Please select at least one allowed category')
             return
         }
-        const limits: Record<string, number> = {}
-        for (const cat of formData.categories) {
-            const val = Number(formData.categoryLimits[cat])
-            if (!val || val <= 0) {
-                alert('Please set valid category limits for all selected categories')
-                return
-            }
-            limits[cat] = val
-        }
-        const limitsSum = formData.categories.reduce((sum, cat) => sum + Number(formData.categoryLimits[cat] || 0), 0)
-        if (limitsSum !== Number(formData.beneficiaryCap)) {
-            alert('Category limits must add up exactly to the per-beneficiary cap.')
-            return
-        }
 
         setIsSubmitting(true)
         try {
@@ -117,7 +95,6 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
                     stateRegion: formData.locationState,
                     district: formData.locationDistrict,
                     categories: formData.categories,
-                    categoryLimits: limits,
                     urgency: 'High', // Defaulting for now
                     status: 'Active',
                     totalFundsAllocated: Number(formData.budgetCap) || 0,
@@ -338,28 +315,7 @@ export default function CreateCampaignModal({ isOpen, onClose, onSuccess }: Crea
                                 ))}
                             </div>
 
-                            {formData.categories.length > 0 && (
-                                <div className="mt-8 space-y-4">
-                                    <h4 className="font-bold text-gray-300 text-sm uppercase tracking-wider">Category Limits (per beneficiary) <span className="text-red-500">*</span></h4>
-                                    <div className="space-y-3">
-                                        {formData.categories.map(cat => (
-                                            <div key={cat} className="flex items-center gap-4">
-                                                <div className="w-24 font-medium text-gray-300">{cat}</div>
-                                                <div className="flex-1 relative">
-                                                    <span className="absolute left-3 top-2 text-gray-500 text-sm">₹</span>
-                                                    <input
-                                                        type="number"
-                                                        min={1}
-                                                        value={formData.categoryLimits[cat] || ''}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-lg pl-8 pr-4 py-2 text-sm text-white focus:outline-none focus:border-accent/50"
-                                                        onChange={(e) => handleCategoryLimitChange(cat, e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            
                         </motion.div>
                     )}
 

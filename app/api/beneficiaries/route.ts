@@ -33,7 +33,7 @@ export async function GET() {
 
     await dbConnect()
 
-    const beneficiary = await Beneficiary.findOne({ userId: user.userId }).populate('campaignId', 'name location stateRegion district status categoryLimits beneficiaryCap createdBy')
+    const beneficiary = await Beneficiary.findOne({ userId: user.userId }).populate('campaignId', 'name location stateRegion district status categories categoryLimits beneficiaryCap createdBy')
     if (!beneficiary) {
       return NextResponse.json({ message: 'Not found' }, { status: 404 })
     }
@@ -45,15 +45,14 @@ export async function GET() {
       organisationName = org?.name || ''
     }
 
-    const vendors = await Vendor.find({ campaignId: beneficiary.campaignId }).select('name authorizedCategories')
+    const vendors = await Vendor.find({ campaignId: beneficiary.campaignId, status: 'Approved' }).select('name')
 
     const txns = await Transaction.find({ beneficiaryId: beneficiary._id }).sort({ timestamp: -1 }).limit(10).populate('vendorId', 'name')
 
     const categoryLimitsMap: Record<string, number> = {}
-    const categories: string[] = []
+    const categories: string[] = Array.isArray(campaign?.categories) ? (campaign!.categories as string[]) : []
     if (campaign?.categoryLimits) {
       ;(campaign.categoryLimits as Map<string, number>).forEach((val, key) => {
-        categories.push(key)
         categoryLimitsMap[key] = val
       })
     }
@@ -61,13 +60,15 @@ export async function GET() {
     const totalLimit = campaign?.beneficiaryCap || 0
 
     const spentByCategory: Record<string, number> = {}
+    let totalSpent = 0
     txns.forEach(t => {
       const cat = (t as any).category
       const amt = (t as any).amount || 0
       spentByCategory[cat] = (spentByCategory[cat] || 0) + amt
+      totalSpent += amt
     })
 
-    const balances = categories.map(cat => {
+    const balances = Object.keys(categoryLimitsMap).map(cat => {
       const limit = categoryLimitsMap[cat] || 0
       const spent = spentByCategory[cat] || 0
       const remaining = Math.max(0, limit - spent)
@@ -114,6 +115,7 @@ export async function GET() {
       categories,
       stores,
       totalLimit,
+      totalSpent,
       balances,
       history
     }, { status: 200 })

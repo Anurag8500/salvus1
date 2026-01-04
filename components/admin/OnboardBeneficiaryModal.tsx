@@ -366,26 +366,7 @@ export default function OnboardBeneficiaryModal({ isOpen, onClose, campaignLocat
                     {/* STEP 4: AID RULES & VERIFICATION */}
                     {step === 4 && (
                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-                            <div className="p-4 rounded-xl bg-gradient-to-r from-blue-900/20 to-transparent border border-blue-500/20 mb-6">
-                                <div className="flex items-center gap-2 text-blue-300 font-bold mb-2">
-                                    <Shield className="w-5 h-5" />
-                                    Campaign Aid Rules
-                                </div>
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div>
-                                        <div className="text-gray-500 text-xs uppercase tracking-wider">Per-Beneficiary Cap</div>
-                                        <div className="text-white font-mono font-medium">₹5,000</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-500 text-xs uppercase tracking-wider">Allowed Categories</div>
-                                        <div className="text-white">Food, Medicine, Transport</div>
-                                    </div>
-                                </div>
-                                <div className="mt-3 text-xs text-blue-200/60 bg-blue-500/10 p-2 rounded">
-                                    <Info className="w-3 h-3 inline mr-1" />
-                                    These are read-only rules set by the campaign.
-                                </div>
-                            </div>
+                            
 
                             <div className="space-y-4">
                                 <h4 className="text-sm font-bold text-gray-300 uppercase tracking-widest">Verification Status</h4>
