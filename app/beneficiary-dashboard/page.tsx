@@ -61,8 +61,21 @@ export default function BeneficiaryDashboard() {
         setStores(data.stores || [])
         setBalances(data.balances || [])
         setHistory(data.history || [])
-        setTotalLimit(data.totalLimit || 0)
-        setTotalSpent(data.totalSpent || 0)
+        // Prefer backend status API for canonical balances
+        try {
+          const statusRes = await fetch('/api/beneficiary/status')
+          if (statusRes.ok) {
+            const status = await statusRes.json()
+            setTotalLimit(status.beneficiaryCap || 0)
+            setTotalSpent(status.beneficiarySpent || 0)
+          } else {
+            setTotalLimit(data.totalLimit || 0)
+            setTotalSpent(data.totalSpent || 0)
+          }
+        } catch {
+          setTotalLimit(data.totalLimit || 0)
+          setTotalSpent(data.totalSpent || 0)
+        }
         if ((data.categories || []).length > 0) {
           setCategory(data.categories[0])
         }
@@ -83,12 +96,38 @@ export default function BeneficiaryDashboard() {
     e.preventDefault()
     setLoading(true)
     setMessage('')
-    setTimeout(() => {
-      setLoading(false)
-      setMessage('Purchase confirmed. You do not need to pay. Salvus pays the store directly.')
+    try {
+      const payload = {
+        category,
+        storeId: store,
+        amount: Number(amount)
+      }
+      const res = await fetch('/api/beneficiary/request-payment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ message: 'Payment request failed' }))
+        throw new Error(err.message || 'Payment request failed')
+      }
+      const data = await res.json()
+      setMessage('Purchase request recorded. Store will be paid directly after processing.')
       setAmount('')
       setStore('')
-    }, 800)
+      try {
+        const statusRes = await fetch('/api/beneficiary/status')
+        if (statusRes.ok) {
+          const status = await statusRes.json()
+          setTotalLimit(status.beneficiaryCap || 0)
+          setTotalSpent(status.beneficiarySpent || 0)
+        }
+      } catch {}
+    } catch (error: any) {
+      setMessage(error.message || 'Failed to process purchase request')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

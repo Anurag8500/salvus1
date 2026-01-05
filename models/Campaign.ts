@@ -58,6 +58,10 @@ const CampaignSchema = new mongoose.Schema({
     type: Number,
     default: 0,
   },
+  fundsSpent: {
+    type: Number,
+    default: 0,
+  },
   categories: {
     type: [String],
     validate: [(v: string[]) => Array.isArray(v) && v.length > 0, 'Allowed categories are required'],

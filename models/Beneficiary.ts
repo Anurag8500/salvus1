@@ -78,6 +78,10 @@ const BeneficiarySchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  totalSpent: {
+    type: Number,
+    default: 0,
+  },
   activityLog: [{
     action: String,
     timestamp: {
