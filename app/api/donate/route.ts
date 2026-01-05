@@ -3,16 +3,49 @@ import { ethers } from "ethers";
 import { initiateOnRamp } from "@/src/onmeta/onramp";
 import SalvusEscrowABI from "@/lib/abis/SalvusEscrow.json";
 import Donation from "@/src/models/Donation";
+import Campaign from "@/models/Campaign";
 import { connectDB } from "@/src/lib/db";
+import jwt from "jsonwebtoken";
+import { cookies } from "next/headers";
+import User from "@/models/User";
 
 export async function POST(req: NextRequest) {
   try {
-    const { donor, amountInr } = await req.json();
-
-    if (!donor || !amountInr) {
-      throw new Error("Missing donor or amountInr");
+    const cookieStore = cookies();
+    const token = cookieStore.get("token");
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+    let payload: any;
+    try {
+      payload = jwt.verify(token.value, process.env.JWT_SECRET!);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userId = payload.userId;
+
+    // 📥 2️⃣ Read request body
+    const { amountInr, campaignId } = await req.json();
+
+    if (!amountInr || !campaignId) {
+      throw new Error("Missing amountInr or campaignId");
+    }
+
+    // 🗄️ 3️⃣ DB connection
+    await connectDB();
+
+    const userDoc = await User.findById(userId).select("name");
+    const userName = userDoc?.name || "Donor";
+
+    // 🎯 4️⃣ Fetch campaign
+    const campaign = await Campaign.findById(campaignId);
+
+    if (!campaign) {
+      throw new Error("Campaign not found");
+    }
+
+    // 🌐 5️⃣ Env checks
     const {
       RPC_URL,
       PRIVATE_KEY,
@@ -20,18 +53,39 @@ export async function POST(req: NextRequest) {
       MOCK_USDC_ADDRESS,
     } = process.env;
 
-    if (!RPC_URL || !PRIVATE_KEY || !ESCROW_ADDRESS || !MOCK_USDC_ADDRESS) {
-      throw new Error("Missing required blockchain env variables");
+    const envMissing =
+      !RPC_URL || !PRIVATE_KEY || !ESCROW_ADDRESS || !MOCK_USDC_ADDRESS;
+
+    // 💱 6️⃣ DEMO ON-RAMP (INR → USDC)
+    const onrampResult = await initiateOnRamp({
+      donor: userName,
+      amountInr,
+    });
+
+    // If blockchain env is missing, store donation in demo mode and return success
+    if (envMissing) {
+      await Donation.create({
+        userId,
+        userName,
+        campaignId: campaign._id,
+        campaignName: campaign.name,
+        inrAmount: amountInr,
+        usdcAmount: onrampResult.usdcAmount,
+        txHash: `demo-${Date.now()}`,
+        status: "SUCCESS",
+      });
+      return NextResponse.json({
+        success: true,
+        message: "Donation recorded (demo mode)",
+        txHash: `demo-${Date.now()}`,
+        usdcAmount: onrampResult.usdcAmount,
+      });
     }
 
-    // 1️⃣ DEMO ON-RAMP (INR → USDC)
-    const onrampResult = await initiateOnRamp({ donor, amountInr });
-
-    // 2️⃣ Blockchain setup
+    // 🔗 7️⃣ Blockchain setup
     const provider = new ethers.JsonRpcProvider(RPC_URL);
     const wallet = new ethers.Wallet(PRIVATE_KEY, provider);
 
-    // 3️⃣ Attach contracts
     const escrow = new ethers.Contract(
       ESCROW_ADDRESS,
       SalvusEscrowABI.abi,
@@ -46,34 +100,31 @@ export async function POST(req: NextRequest) {
       wallet
     );
 
-    // 4️⃣ Convert USDC → 6 decimals
+    // 🔢 8️⃣ Convert USDC → 6 decimals
     const usdcAmount = ethers.parseUnits(
       onrampResult.usdcAmount.toString(),
       6
     );
 
-    // 5️⃣ APPROVE
+    // ✅ 9️⃣ Approve
     const approveTx = await usdc.approve(ESCROW_ADDRESS, usdcAmount);
-    console.log("🟢 Approve tx sent:", approveTx.hash);
     await approveTx.wait();
 
-    // 6️⃣ DONATE
+    // 💸 🔟 Donate
     const donateTx = await escrow.donate(usdcAmount);
-    console.log("🟢 Donate tx sent:", donateTx.hash);
     await donateTx.wait();
 
-    // 7️⃣ STORE DONATION IN DB (🔥 IMPORTANT)
-    await connectDB();
-
+    // 🗄️ 1️⃣1️⃣ Store donation (IMPORTANT)
     await Donation.create({
-      donor,
+      userId,
+      userName,
+      campaignId: campaign._id,
+      campaignName: campaign.name,
       inrAmount: amountInr,
       usdcAmount: onrampResult.usdcAmount,
       txHash: donateTx.hash,
       status: "SUCCESS",
     });
-
-    console.log("🗄️ Donation stored in DB");
 
     return NextResponse.json({
       success: true,
@@ -81,6 +132,7 @@ export async function POST(req: NextRequest) {
       txHash: donateTx.hash,
       usdcAmount: onrampResult.usdcAmount,
     });
+
   } catch (err: any) {
     console.error("Donate API error:", err);
     return NextResponse.json(

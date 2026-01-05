@@ -15,6 +15,9 @@ export default function DonateSection() {
   const [campaigns, setCampaigns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [authChecked, setAuthChecked] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authMessage, setAuthMessage] = useState('')
 
   // Hydration fix & Portal target check
   useEffect(() => {
@@ -40,6 +43,23 @@ export default function DonateSection() {
     let mounted = true
     const load = async () => {
       try {
+        // Check authentication status first
+        try {
+          const resAuth = await fetch('/api/auth/login')
+          if (resAuth.ok) {
+            setIsAuthenticated(true)
+            setAuthMessage('')
+          } else {
+            setIsAuthenticated(false)
+            setAuthMessage('Please log in to donate')
+          }
+        } catch {
+          setIsAuthenticated(false)
+          setAuthMessage('Please log in to donate')
+        } finally {
+          setAuthChecked(true)
+        }
+
         const res = await fetch('/api/campaigns')
         if (!res.ok) throw new Error('Failed to load campaigns')
         const data = await res.json()
@@ -65,6 +85,10 @@ export default function DonateSection() {
   const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedCampaign || !amount) return
+    if (!isAuthenticated) {
+      alert('Please log in to donate')
+      return
+    }
 
     try {
       const res = await fetch('/api/donate', {
@@ -72,12 +96,14 @@ export default function DonateSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           donor: 'Dashboard User',
-          amountInr: Number(amount)
+          amountInr: Number(amount),
+          campaignId: selectedCampaign
         })
       })
-      const data = await res.json()
-      if (!data?.success) {
-        alert('Donation failed')
+      const data = await res.json().catch(() => null)
+      if (!res.ok || !data?.success) {
+        const msg = (data && (data.error || data.message)) || 'Donation failed'
+        alert(msg)
         return
       }
       const campaign = campaigns.find((c) => c.id === selectedCampaign)
@@ -252,12 +278,15 @@ export default function DonateSection() {
             <motion.button
               type="submit"
               whileTap={{ scale: 0.98 }}
-              disabled={!selectedCampaign || !amount}
+              disabled={!selectedCampaign || !amount || !isAuthenticated}
               className="w-full py-4 bg-accent hover:bg-accent-dark text-dark-darker font-bold text-lg rounded-xl transition-all duration-300 shadow-[0_0_20px_rgba(45,212,191,0.3)] hover:shadow-[0_0_30px_rgba(45,212,191,0.5)] flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
-              <span>Confirm Donation</span>
+              <span>{isAuthenticated ? 'Confirm Donation' : 'Login to Donate'}</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </motion.button>
+            {!isAuthenticated && authChecked && (
+              <div className="text-center text-sm text-red-400 mt-2">{authMessage}</div>
+            )}
           </form>
         </div>
       </motion.div>
