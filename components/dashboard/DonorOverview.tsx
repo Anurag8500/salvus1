@@ -2,46 +2,39 @@
 
 import { motion } from 'framer-motion'
 import { DollarSign, Heart, TrendingUp, Calendar, Sparkles } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function DonorOverview() {
-  const stats = [
-    {
-      icon: DollarSign,
-      label: 'Total Donated',
-      value: '₹0',
-      color: 'text-accent',
-      bgGradient: 'from-accent/20 to-accent/5',
-      borderColor: 'border-accent/30',
-      glow: 'shadow-accent/20',
-    },
-    {
-      icon: Heart,
-      label: 'Campaigns Supported',
-      value: '0',
-      color: 'text-accent-light',
-      bgGradient: 'from-accent-light/20 to-accent-light/5',
-      borderColor: 'border-accent-light/30',
-      glow: 'shadow-accent-light/20',
-    },
-    {
-      icon: TrendingUp,
-      label: 'Funds Utilized',
-      value: '₹0',
-      color: 'text-accent',
-      bgGradient: 'from-accent/20 to-accent/5',
-      borderColor: 'border-accent/30',
-      glow: 'shadow-accent/20',
-    },
-    {
-      icon: Calendar,
-      label: 'Last Donation Date',
-      value: '—',
-      color: 'text-accent-light',
-      bgGradient: 'from-accent-light/20 to-accent-light/5',
-      borderColor: 'border-accent-light/30',
-      glow: 'shadow-accent-light/20',
-    },
-  ]
+  const [stats, setStats] = useState([
+    { icon: DollarSign, label: 'Total Donated', value: '₹0', color: 'text-accent', bgGradient: 'from-accent/20 to-accent/5', borderColor: 'border-accent/30', glow: 'shadow-accent/20' },
+    { icon: Heart, label: 'Campaigns Supported', value: '0', color: 'text-accent-light', bgGradient: 'from-accent-light/20 to-accent-light/5', borderColor: 'border-accent-light/30', glow: 'shadow-accent-light/20' },
+    { icon: TrendingUp, label: 'Funds Utilized', value: '₹0', color: 'text-accent', bgGradient: 'from-accent/20 to-accent/5', borderColor: 'border-accent/30', glow: 'shadow-accent/20' },
+    { icon: Calendar, label: 'Last Donation Date', value: '—', color: 'text-accent-light', bgGradient: 'from-accent-light/20 to-accent-light/5', borderColor: 'border-accent-light/30', glow: 'shadow-accent-light/20' },
+  ])
+
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/donations')
+        if (!res.ok) return
+        const data = await res.json()
+        const donations = Array.isArray(data?.data) ? data.data : []
+        const total = donations.reduce((sum: number, d: any) => sum + Number(d.inrAmount || 0), 0)
+        const campaignsSupported = new Set(donations.map((d: any) => String(d.campaignId))).size
+        const lastDate = donations[0]?.createdAt ? new Date(donations[0].createdAt).toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }) : '—'
+        const updated = [
+          { ...stats[0], value: `₹${total.toLocaleString()}` },
+          { ...stats[1], value: String(campaignsSupported) },
+          { ...stats[2], value: `₹${total.toLocaleString()}` },
+          { ...stats[3], value: lastDate },
+        ]
+        if (mounted) setStats(updated)
+      } catch {}
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

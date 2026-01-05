@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
 
     // If blockchain env is missing, store donation in demo mode and return success
     if (envMissing) {
+      const demoTx = `demo-${Date.now()}`;
       await Donation.create({
         userId,
         userName,
@@ -71,13 +72,18 @@ export async function POST(req: NextRequest) {
         campaignName: campaign.name,
         inrAmount: amountInr,
         usdcAmount: onrampResult.usdcAmount,
-        txHash: `demo-${Date.now()}`,
+        txHash: demoTx,
         status: "SUCCESS",
       });
+      const newFundsRaised = Math.min(
+        (campaign.fundsRaised || 0) + Number(amountInr),
+        campaign.totalFundsAllocated || 0
+      );
+      await Campaign.findByIdAndUpdate(campaign._id, { fundsRaised: newFundsRaised });
       return NextResponse.json({
         success: true,
         message: "Donation recorded (demo mode)",
-        txHash: `demo-${Date.now()}`,
+        txHash: demoTx,
         usdcAmount: onrampResult.usdcAmount,
       });
     }
@@ -125,6 +131,11 @@ export async function POST(req: NextRequest) {
       txHash: donateTx.hash,
       status: "SUCCESS",
     });
+    const newFundsRaised = Math.min(
+      (campaign.fundsRaised || 0) + Number(amountInr),
+      campaign.totalFundsAllocated || 0
+    );
+    await Campaign.findByIdAndUpdate(campaign._id, { fundsRaised: newFundsRaised });
 
     return NextResponse.json({
       success: true,
