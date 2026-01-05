@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ethers } from "ethers";
 import { initiateOnRamp } from "@/src/onmeta/onramp";
-import SalvusEscrowABI from "@/artifacts/contracts/SalvusEscrow.sol/SalvusEscrow.json";
+import SalvusEscrowABI from "@/lib/abis/SalvusEscrow.json";
 import Donation from "@/src/models/Donation";
 import { connectDB } from "@/src/lib/db";
 

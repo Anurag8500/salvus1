@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import SalvusEscrowABI from "@/artifacts/contracts/SalvusEscrow.sol/SalvusEscrow.json";
+import SalvusEscrowABI from "@/lib/abis/SalvusEscrow.json";
 
 export const provider = new ethers.JsonRpcProvider(
   process.env.RPC_URL

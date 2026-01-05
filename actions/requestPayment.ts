@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import SalvusEscrowABI from "@/artifacts/contracts/SalvusEscrow.sol/SalvusEscrow.json";
+import SalvusEscrowABI from "@/lib/abis/SalvusEscrow.json";
 import { connectWallet } from "@/lib/wallet";
 
 export async function requestPayment(amount: string) {
