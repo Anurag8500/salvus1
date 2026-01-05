@@ -24,10 +24,19 @@ const TransactionSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  usdcAmount: {
+    type: Number,
+  },
   status: {
     type: String,
-    enum: ['Pending', 'Completed', 'Failed', 'Paid'],
-    default: 'Completed',
+    enum: ['Pending', 'VendorConfirmed', 'Completed', 'Failed'],
+    default: 'Pending',
+  },
+  confirmationToken: {
+    type: String,
+  },
+  confirmedAt: {
+    type: Date,
   },
   timestamp: {
     type: Date,

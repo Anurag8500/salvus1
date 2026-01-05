@@ -47,7 +47,7 @@ export async function GET() {
 
     const vendors = await Vendor.find({ campaignId: beneficiary.campaignId, status: 'Approved' }).select('name')
 
-    const txns = await Transaction.find({ beneficiaryId: beneficiary._id }).sort({ timestamp: -1 }).limit(10).populate('vendorId', 'name')
+    const txns = await Transaction.find({ beneficiaryId: beneficiary._id, status: 'Completed' }).sort({ timestamp: -1 }).limit(10).populate('vendorId', 'name')
 
     const categoryLimitsMap: Record<string, number> = {}
     const categories: string[] = Array.isArray(campaign?.categories) ? (campaign!.categories as string[]) : []

@@ -94,11 +94,15 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const fx = Number(process.env.EXCHANGE_RATE_INR_PER_USDC || 83)
+    const usdcAmount = Number((amount / fx).toFixed(6))
+
     const txn = await Transaction.create({
       campaignId: campaign._id,
       beneficiaryId: beneficiary._id,
       vendorId: vendor._id,
       amount,
+      usdcAmount,
       category,
       status: 'Pending',
       timestamp: new Date(),

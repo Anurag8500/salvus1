@@ -112,7 +112,25 @@ export default function BeneficiaryDashboard() {
         throw new Error(err.message || 'Payment request failed')
       }
       const data = await res.json()
-      setMessage('Purchase request recorded. Store will be paid directly after processing.')
+      try {
+        const confirmRes = await fetch('/api/beneficiary/confirm-purchase', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ transactionId: data.transactionId })
+        })
+        if (!confirmRes.ok) {
+          const err = await confirmRes.json().catch(() => ({ message: 'Failed to notify vendor' }))
+          throw new Error(err.message || 'Failed to notify vendor')
+        }
+        const confirmData = await confirmRes.json().catch(() => ({}))
+        if (confirmData.previewUrl) {
+          setMessage(`Purchase recorded. Vendor has been emailed to confirm. Preview: ${confirmData.previewUrl}`)
+        } else {
+          setMessage('Purchase recorded. Vendor has been emailed to confirm.')
+        }
+      } catch (e: any) {
+        setMessage(e.message || 'Recorded, but failed to email vendor')
+      }
       setAmount('')
       setStore('')
       try {
