@@ -62,25 +62,39 @@ export default function DonateSection() {
     return () => { mounted = false }
   }, [])
 
-  const handleDonate = (e: React.FormEvent) => {
+  const handleDonate = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedCampaign || !amount) return
 
-    const campaign = campaigns.find((c) => c.id === selectedCampaign)
-    const refId = `SALVUS-${Date.now().toString().slice(-8)}`
-    const timestamp = new Date().toLocaleString('en-IN', {
-      dateStyle: 'full',
-      timeStyle: 'medium',
-    })
-
-    setDonationDetails({
-      amount,
-      campaign: campaign?.name || selectedCampaign,
-      timestamp,
-      referenceId: refId,
-      paymentMethod,
-    })
-    setShowModal(true)
+    try {
+      const res = await fetch('/api/donate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          donor: 'Dashboard User',
+          amountInr: Number(amount)
+        })
+      })
+      const data = await res.json()
+      if (!data?.success) {
+        alert('Donation failed')
+        return
+      }
+      const campaign = campaigns.find((c) => c.id === selectedCampaign)
+      const timestamp = new Date().toLocaleString('en-IN', { dateStyle: 'full', timeStyle: 'medium' })
+      setDonationDetails({
+        amount,
+        campaign: campaign?.name || selectedCampaign,
+        timestamp,
+        referenceId: data.txHash,
+        paymentMethod,
+        usdcAmount: data.usdcAmount
+      })
+      setShowModal(true)
+      alert('Donation successful!')
+    } catch {
+      alert('Donation failed')
+    }
   }
 
   const handleCloseModal = () => {

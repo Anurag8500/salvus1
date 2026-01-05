@@ -378,6 +378,7 @@ export default function CampaignDetails() {
                             isOpen={showVendorModal}
                             onClose={() => setShowVendorModal(false)}
                             campaignLocation={campaign.location}
+                            campaignCategories={campaign.categories}
                             campaignId={campaign._id}
                             onSuccess={fetchCampaignData}
                         />

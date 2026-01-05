@@ -1,10 +1,24 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { Eye, CheckCircle, Clock } from 'lucide-react'
+import { Eye } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 export default function DonationHistory() {
-  const donations: any[] = []
+  const [donations, setDonations] = useState<any[]>([])
+  useEffect(() => {
+    let mounted = true
+    const load = async () => {
+      try {
+        const res = await fetch('/api/donations')
+        const data = await res.json()
+        if (!mounted) return
+        if (data?.success) setDonations(data.data || [])
+      } catch {}
+    }
+    load()
+    return () => { mounted = false }
+  }, [])
 
   return (
     <motion.div
@@ -29,7 +43,6 @@ export default function DonationHistory() {
         ) : (
           <div className="space-y-3">
             {donations.map((donation, index) => {
-              const StatusIcon = donation.icon
               return (
                 <motion.div
                   key={index}
@@ -42,28 +55,27 @@ export default function DonationHistory() {
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <h3 className="text-white font-bold text-lg mb-2 group-hover:text-accent transition-colors">
-                        {donation.campaign}
+                        {donation.donor || 'Anonymous Donor'}
                       </h3>
                       <div className="flex items-center gap-4 text-sm">
                         <div className="flex items-center gap-2">
                           <span className="text-gray-400">Amount:</span>
-                          <span className="text-white font-semibold text-lg">₹{donation.amount.toLocaleString()}</span>
+                          <span className="text-white font-semibold text-lg">
+                            ₹{Number(donation.inrAmount || 0).toLocaleString()} → {Number(donation.usdcAmount || 0).toLocaleString()} USDC
+                          </span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <span className="text-gray-400">Date:</span>
-                          <span className="text-gray-300">{donation.date}</span>
+                          <span className="text-gray-400">Tx:</span>
+                          <span className="text-gray-300 font-mono truncate max-w-[220px]">{donation.txHash}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-400">Time:</span>
+                          <span className="text-gray-300">{new Date(donation.createdAt).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex items-center gap-4">
-                      <div className={`flex items-center gap-2 px-4 py-2 rounded-lg border ${donation.statusBorder} ${donation.statusBg}`}>
-                        <StatusIcon className={`w-4 h-4 ${donation.statusColor}`} />
-                        <span className={`font-semibold text-sm ${donation.statusColor}`}>
-                          {donation.usageStatus}
-                        </span>
-                      </div>
-                      
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
