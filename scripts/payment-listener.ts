@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 import * as dotenv from "dotenv";
-import SalvusEscrowArtifact from "../artifacts/contracts/SalvusEscrow.sol/SalvusEscrow.json";
+import SalvusEscrowArtifact from "../lib/abis/SalvusEscrow.json";
 import { initiateDemoOffRamp } from "../src/onmeta/demo-offramp";
 import Payout from "../src/models/Payout";
 import { connectDB } from "../src/lib/db";
